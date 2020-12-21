@@ -1,0 +1,14 @@
+server:
+  port: 8084
+  profile: Development
+  gracetimeout: 5s
+  region: Mumbai
+  servicename: TokenizerDev
+  logger:
+    level: DEBUG
+  statsd:
+    enabled: false
+    host: localhost
+    port: 8125
+  respondingtimeouts:
+    readtimeout: 3000ms

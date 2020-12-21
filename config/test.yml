@@ -1,0 +1,13 @@
+server:
+  port: 8000
+  profile: TEST
+  gracetimeout: 30s
+  region: MUMBAI
+  servicename: TOKENIZERTEST
+  statsd:
+    enabled: true
+    host: testserver
+  respondingtimeouts:
+    readtimeout: 3000ms
+
+
