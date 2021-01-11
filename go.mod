@@ -3,9 +3,17 @@ module bitbucket.org/pharmaeasyteam/tokenizer
 go 1.14
 
 require (
-	bitbucket.org/pharmaeasyteam/goframework v1.0.5
+	bitbucket.org/pharmaeasyteam/goframework v1.0.6
+	github.com/go-chi/chi v4.1.1+incompatible
+	github.com/google/tink/go v1.5.0
+	github.com/google/uuid v1.1.1
+	github.com/json-iterator/go v1.1.7
+	github.com/newrelic/go-agent v3.9.0+incompatible
+	github.com/newrelic/go-agent/v3 v3.6.0
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.6.1
+	go.elastic.co/apm/module/apmhttp v1.7.2
+	go.uber.org/zap v1.15.0
 )
