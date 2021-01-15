@@ -4,7 +4,6 @@ package decryption
 type Request struct {
 	RequestID	int 	`json:"requestId"`
 	Source		string	`json:"source"`
-	Level 		int		`json:"level"`
 	Data		Data 	`json:"data"`
 }
 
