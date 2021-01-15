@@ -5,27 +5,33 @@ import (
 	"net/http"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/encryption"
 	"go.uber.org/zap"
 	//"strconv"
 )
 
 // ParseData ...
-func ParseData(req *http.Request) (string, string) {
-	decoder := json.NewDecoder(req.Body)
+func ParseData(req *http.Request) []encryption.Data {
 
-	test := models.Param{}
-	//err := decoder.DisallowUnknownFields()
+	// This is the validation check. But its not working. Will have to work on it
+
+	// if err := req.ParseForm(); err != nil {
+	// 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+	// }
+	// requestId := req.FormValue("requestId")
+	// source := req.FormValue("source")
+	// level := req.FormValue("level")
+	// if requestId == "" || source == "" || level == "" {
+	// 		logging.GetLogger().Error("Problem in input params")
+	// 		return nil
+	// }
+
+	decoder := json.NewDecoder(req.Body)
+	test := encryption.Request{}
 	err := decoder.Decode(&test)
 	if err != nil {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
 	}
-	return test.Data.Content, test.Source
+	return test.Data
 
-}
-
-// CheckAllParams ...
-func CheckAllParams(req *http.Request) {
-	query := req.URL.Query().Get("source")
-	l
 }

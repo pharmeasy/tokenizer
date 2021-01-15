@@ -5,22 +5,21 @@ import (
 
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
-	"github.com/google/tink/go/tink"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/models"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/jsonparser"
-
-	//"bitbucket.org/pharmaeasyteam/tokenizer/internal/kms/aws"
-	models2 "bitbucket.org/pharmaeasyteam/tokenizer/internal/models"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/encryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/response"
+	encryption2 "bitbucket.org/pharmaeasyteam/tokenizer/internal/models/response/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/uuidmodule"
 
 	"go.uber.org/zap"
 )
 
 //DataEncrypt ...
-func DataEncrypt(data string, key string) ([]byte, tink.AEAD) {
+func DataEncrypt(data string, key string) string {
 
 	// AEAD primitive
 	kh, err := keyset.NewHandle(aead.AES256GCMKeyTemplate())
@@ -38,42 +37,52 @@ func DataEncrypt(data string, key string) ([]byte, tink.AEAD) {
 		logging.GetLogger().Error("Problem in Encryption", zap.Error(err))
 	}
 
-	return ct, a
+	return string(ct)
+}
+
+// DataEncryptWrapper is the main encryption function which gives us the response
+func DataEncryptWrapper(data []encryption.Data) encryption2.Response {
+	var response encryption2.Response
+	temp := []encryption2.Data{}
+	for i := 0; i < len(data); i++ {
+		uniqueID := uuidmodule.Uniquetoken()
+		temp = append(temp, encryption2.Data{
+			Token:   uniqueID,
+			Content: DataEncrypt(data[i].Content, "key"),
+		})
+	}
+	response.Data = temp
+	return response
 }
 
 // getTokens ...
 func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
-	//UUID token
-	uniqueID := uuidmodule.Uniquetoken()
-
-	// err := jsonparser.CheckAllParams(req)
-	// log.Fatal(err)
-	//jsonparser.CheckAllParams(req)
 
 	//get parsed data
-	content, source := jsonparser.ParseData(req)
+	content := jsonparser.ParseData(req)
 
-	// Encryption task
-	key := "private_key"
-	data, _ := DataEncrypt(content, key)
+	// content nil means that validation check logic from parse.go
+	if content == nil {
+		render.JSONWithStatus(w, req, http.StatusBadRequest, response.ExceptionResponse(http.StatusBadRequest, "Your request is malformed"))
+		return
+	}
+
+	// output the response
+	response := DataEncryptWrapper(content)
+	render.JSON(w, req, response)
 
 	//datastore object
-	dataStore := models2.DataStore{}
-	dataStore.TokenID = uniqueID
-	dataStore.EncryptedData = data
-	dataStore.Source = source
-	dataStore.EncryptionMode = 0 // need to figure out the logic
-	dataStore.Severity = 1       // need to figure out the logic
+	// dataStore := models2.DataStore{}
+	// dataStore.TokenID = uniqueID
+	// dataStore.EncryptedData = data
+	// dataStore.Source = source
+	// dataStore.EncryptionMode = 0 // need to figure out the logic
+	// dataStore.Severity = 1       // need to figure out the logic
 
 	/*
 		dataStore object will be stored in dynamoDB. need to figure out the logic
 
 	*/
-
-	//Return the token id to the client
-	tokenString := "\"token\" : " + uniqueID.String()
-	w.Write([]byte(tokenString))
-	//w.Write(data)
 }
 
 // getData ...

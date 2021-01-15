@@ -4,7 +4,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func Uniquetoken() uuid.UUID {
+// Uniquetoken() ...
+func Uniquetoken() string {
 	unique_id := uuid.New()
-	return unique_id
+	return unique_id.String()
 }
