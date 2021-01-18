@@ -13,24 +13,21 @@ import (
 // ParseData ...
 func ParseData(req *http.Request) []encryption.Data {
 
-	// This is the validation check. But its not working. Will have to work on it
-
-	// if err := req.ParseForm(); err != nil {
-	// 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
-	// }
-	// requestId := req.FormValue("requestId")
-	// source := req.FormValue("source")
-	// level := req.FormValue("level")
-	// if requestId == "" || source == "" || level == "" {
-	// 		logging.GetLogger().Error("Problem in input params")
-	// 		return nil
-	// }
-
 	decoder := json.NewDecoder(req.Body)
 	test := encryption.Request{}
 	err := decoder.Decode(&test)
 	if err != nil {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+	}
+
+	// input validations
+	requestId := test.RequestID
+	source := test.Source
+	level := test.Level
+
+	if requestId < 1 || source == "" || level < 1 {
+		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+		return nil
 	}
 	return test.Data
 
