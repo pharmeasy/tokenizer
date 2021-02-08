@@ -2,8 +2,11 @@ package decryption
 
 // Response represents the successful decryption response
 type Response struct {
-	Data []struct {
-		Token   string `json:"token"`
-		Content string `json:"content"`
-	} `json:"data"`
+	Data []Data `json:"data"`
+}
+
+// Data is the struct for object
+type Data struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
 }

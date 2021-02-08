@@ -1,20 +1,13 @@
 package encryption
 
-// Response represents the successful decryption response
-// type Response struct {
-// 	Data []struct {
-// 		Token   string `json:"token"`
-// 		Content string `json:"content"`
-// 	} `json:"data"`
-// }
-
-type Data struct {
-	Token   string
-	Content string
-}
-
+// Response represents the successful encryption response
 type Response struct {
-	Data []Data
+	Data []Data `json:"data"`
 }
 
-// var response encryption.Response
+// Data is the struct for object
+type Data struct {
+	ID     int    `json:"id"`
+	Token  string `json:"token"`
+	Cipher []byte `json:"cipher"`
+}

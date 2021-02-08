@@ -19,4 +19,5 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.7.2
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 )
