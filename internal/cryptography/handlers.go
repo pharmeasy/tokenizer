@@ -3,19 +3,23 @@ package cryptography
 import (
 	"encoding/json"
 	"fmt"
+	"errors"
 	"net/http"
 
-	"github.com/google/tink/go/aead"
-	"github.com/google/tink/go/keyset"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/decryption"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
-	"bitbucket.org/pharmaeasyteam/goframework/models"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
+
+	//"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	kms "bitbucket.org/pharmaeasyteam/tokenizer/internal/kms/aws"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/encryption"
 	encryption2 "bitbucket.org/pharmaeasyteam/tokenizer/internal/models/response/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/uuidmodule"
+	"github.com/google/tink/go/aead"
+	"github.com/google/tink/go/keyset"
 
 	"go.uber.org/zap"
 )
@@ -137,9 +141,81 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(keysetName))
 }
 
-// getData ...
-func (c *ModuleCrypto) getData(w http.ResponseWriter, req *http.Request) {
-	render.JSON(w, req, models.Response{Msg: "Wait for Implementation"})
+func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
+
+	// validate request params
+	dataParams, tokenIDs, err := validateDecryptionRequest(req)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+	// fetch records
+	tokenData, err := database.GetItemsByToken(tokenIDs)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while fetching token data."))
+		return
+	}
+
+	// validate access
+	isAuthorized := authorizeRequest(dataParams.Identifier, dataParams.Level)
+	if !isAuthorized {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		return
+	}
+
+	// decrypt records (Tink + Salt)
+
+	// decorate response
+
+
+	render.JSON(w, req, tokenData)
+
+}
+
+func validateDecryptionRequest(req *http.Request) (decryption.Request, []string, error) {
+
+	decoder := json.NewDecoder(req.Body)
+	params := decryption.Request{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		logging.GetLogger().Error("Unable to decode decryption request params.", zap.Error(err))
+		return params, nil, err
+	}
+
+	genericError := errors.New("Invalid request parameters passed.")
+
+	if params.Level < 1 {
+		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
+		return params, nil, genericError
+	}
+
+	if params.Identifier == "" {
+		logging.GetLogger().Error("Identifier is empty.", zap.Error(err))
+		return params, nil, genericError
+	}
+
+	payloadSize := len(params.Data)
+	tokenIDs := make([]string, payloadSize)
+
+	for i := 0; i < payloadSize; i++ {
+		tokenIDs[i] = params.Data[i].Token
+		if params.Data[i].Token == "" {
+			logging.GetLogger().Error("Empty token passed.", zap.Error(err))
+			return params, nil, genericError
+		}
+
+		if params.Data[i].Salt == "" {
+			logging.GetLogger().Error("Empty salt passed.", zap.Error(err))
+			return params, nil, genericError
+		}
+	}
+
+	return params, tokenIDs, nil
+}
+
+func authorizeRequest(accessToken string, level int) bool {
+	return true
 }
 
 func (c *ModuleCrypto) updateMeta(w http.ResponseWriter, req *http.Request) {
