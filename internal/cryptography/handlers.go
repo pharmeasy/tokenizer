@@ -2,6 +2,7 @@ package cryptography
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/google/tink/go/aead"
@@ -18,6 +19,13 @@ import (
 
 	"go.uber.org/zap"
 )
+
+var keysetMap = map[int]string{
+	0: "keyset1.json",
+	1: "keyset2.json",
+	2: "keyset3.json",
+	3: "keyset4.json",
+}
 
 //DataEncrypt returns the cipher text
 func DataEncrypt(data string, salt string, kh *keyset.Handle) []byte {
@@ -62,10 +70,10 @@ func validateAndParseRequest(req *http.Request) ([]encryption.Data, string, int)
 
 	// input validations
 	requestId := test.RequestID
-	source := test.Source
+	identifier := test.Identifier
 	level := test.Level
 
-	if requestId < 1 || source == "" || level < 1 {
+	if requestId == "" || identifier == "" || level < 1 {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
 		return nil, "", -1
 	}
@@ -75,19 +83,19 @@ func validateAndParseRequest(req *http.Request) ([]encryption.Data, string, int)
 			return nil, "", -1
 		}
 	}
-	return test.Data, test.Source, test.Level
+	return test.Data, test.Identifier, test.Level
 
 }
 
 // severity mapper function
-func validateMapper(source string, level int) int {
+func validateMapper(identifier string, level int) int {
 	var list = map[string]int{
 		"iron":  1,
 		"oms":   2,
 		"alloy": 3,
 	}
 
-	src := list[source]
+	src := list[identifier]
 	if src < level {
 		return http.StatusForbidden
 	}
@@ -96,14 +104,20 @@ func validateMapper(source string, level int) int {
 
 // getTokens ...
 func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
-
-	fileName := "/Users/riddhimanparasar/tokenizer/internal/cryptography/keyset1.json"
-	kh := kms.GetKeysets(fileName)
-
+	// if len(kms.DecryptedKeysetMap) != 0 && len(kms.KeysetArr) != 0 {
+	// 	kms.KeysetArr = kms.KeysetName()
+	// 	kms.DecryptKeyset()
+	// }
+	kms.DecryptKeyset()
+	KeysetArr := kms.KeysetName(kms.DecryptedKeysetMap)
+	fmt.Println(len(KeysetArr))
+	fmt.Println(len(kms.DecryptedKeysetMap))
+	keysetName := kms.SelectKeyset(KeysetArr)
+	keysetHandler := kms.DecryptedKeysetMap[keysetName]
 	//get parsed data
-	content, source, level := validateAndParseRequest(req)
+	content, identifier, level := validateAndParseRequest(req)
 	// // check severity mapper
-	responseCode := validateMapper(source, level)
+	responseCode := validateMapper(identifier, level)
 
 	// malformed request
 	if content == nil {
@@ -118,8 +132,9 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 	}
 
 	//Encryption
-	response := DataEncryptWrapper(content, kh)
+	response := DataEncryptWrapper(content, keysetHandler)
 	render.JSON(w, req, response)
+	w.Write([]byte(keysetName))
 }
 
 // getData ...
