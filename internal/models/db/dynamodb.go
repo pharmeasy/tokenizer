@@ -4,7 +4,7 @@ package db
 type TokenData struct {
 	TokenID   string `json:"tokenId"`
 	Level     int
-	Content   string
+	Content   []byte
 	CreatedAt string
 	UpdatedAt string
 	Key       string

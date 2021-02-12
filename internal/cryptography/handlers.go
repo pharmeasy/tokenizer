@@ -3,7 +3,10 @@ package cryptography
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
@@ -24,14 +27,14 @@ import (
 	"go.uber.org/zap"
 )
 
-func DataDecrypt(cipherText string, salt string, kh *keyset.Handle) (*string, error) {
+func DataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
 	a, err := aead.New(kh)
 	if err != nil {
 		logging.GetLogger().Error("Error encountered while initializing aead handler", zap.Error(err))
 		return nil, err
 	}
 
-	pt, err := a.Decrypt([]byte(cipherText), []byte(salt))
+	pt, err := a.Decrypt(cipherText, []byte(salt))
 	if err != nil {
 		logging.GetLogger().Error("Error encountered while decrypting data", zap.Error(err))
 		return nil, err
@@ -111,7 +114,7 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	// encrypt data
 	encryptedData, err := encryptTokenData(requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while encrypting token data."))
+		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while encrypting token data."))
 		return
 	}
 
@@ -253,7 +256,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 
 		dbTokenData := db.TokenData{
 			Level:     requestParams.Level,
-			Content:   string(ciphertext),
+			Content:   ciphertext,
 			CreatedAt: time.Now().Format(time.RFC3339),
 			UpdatedAt: time.Now().Format(time.RFC3339),
 			Key:       *keyName,

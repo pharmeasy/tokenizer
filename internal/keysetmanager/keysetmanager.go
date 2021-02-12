@@ -94,16 +94,20 @@ func decryptKeyset(keysetmap map[string]*strings.Reader) error {
 }
 
 func getRandomizedKeyset() (*string, *keyset.Handle, error) {
-	if len(decryptedKeysetMap) != 0 {
+	if len(decryptedKeysetMap) == 0 {
 		err := errors.New("the keyset map is empty")
 		logging.GetLogger().Error("Error encountered in reading the keyset.", zap.Error(err))
 		return nil, nil, err
 	}
 
 	var keysetArr = make([]string, len(decryptedKeysetMap))
+
+	i := 0
 	for k := range decryptedKeysetMap {
-		keysetArr = append(keysetArr, k)
+		keysetArr[i] = k
+		i++
 	}
+
 	lengthOfArr := len(keysetArr)
 	timeNow := time.Now().Unix()
 	index := timeNow % int64(lengthOfArr)
