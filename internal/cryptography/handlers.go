@@ -29,12 +29,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var keysetMap = map[int]string{
-	0: "keyset1.json",
-	1: "keyset2.json",
-	2: "keyset3.json",
-	3: "keyset4.json",
-}
 
 //DataEncrypt returns the cipher text
 func DataEncrypt(data string, salt string, kh *keyset.Handle) []byte {

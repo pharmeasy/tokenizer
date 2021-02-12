@@ -25,13 +25,7 @@ import (
 
 var DecryptedKeysetMap = make(map[string]*keyset.Handle)
 
-// SelectKeyset is used to randomly choose a keyset
-func SelectKeyset(keysetArr []string) string {
-	lengthOfArr := len(keysetArr)
-	timeNow := time.Now().Unix()
-	index := timeNow % int64(lengthOfArr)
-	return keysetArr[int(index)]
-}
+
 
 func destringify(str string) *strings.Reader {
 	var keyset keysetmodel.EncryptedKeyset
@@ -89,10 +83,21 @@ func DecryptKeyset() {
 	}
 }
 
-func KeysetName(DecryptedKeysetMap map[string]*keyset.Handle) []string {
+// GetKeyset gets a random keyset for encryption
+func GetKeyset(DecryptedKeysetMap map[string]*keyset.Handle) []string {
 	var KeysetArr = make([]string, len(DecryptedKeysetMap))
-	for k, _ := range DecryptedKeysetMap {
+	for k := range DecryptedKeysetMap {
 		KeysetArr = append(KeysetArr, k)
 	}
+
 	return KeysetArr
+}
+
+// SelectKeyset is used to randomly choose a keyset
+func SelectKeyset(keysetArr []string) string {
+	lengthOfArr := len(keysetArr)
+	timeNow := time.Now().Unix()
+	index := timeNow % int64(lengthOfArr)
+	
+	return keysetArr[int(index)]
 }
