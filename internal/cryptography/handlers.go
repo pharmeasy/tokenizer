@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 
@@ -12,6 +13,7 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/datadecryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/decryption"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
@@ -28,7 +30,6 @@ import (
 
 	"go.uber.org/zap"
 )
-
 
 //DataEncrypt returns the cipher text
 func DataEncrypt(data string, salt string, kh *keyset.Handle) []byte {
@@ -67,11 +68,21 @@ func DataDecrypt(cipherText string, salt string, kh *keyset.Handle) (*string, er
 func DataEncryptWrapper(data []encryption.Data, kh *keyset.Handle) encryption2.Response {
 	var response encryption2.Response
 	temp := []encryption2.Data{}
-	for i := 0; i < len(data); i++ {
+	// for i := 0; i < len(data); i++ {
+	// 	uniqueID := uuidmodule.Uniquetoken()
+	// 	cipherText := DataEncrypt(data[i].Content, data[i].Salt, kh)
+	// 	temp = append(temp, encryption2.Data{
+	// 		ID:     data[i].ID,
+	// 		Token:  uniqueID,
+	// 		Cipher: cipherText,
+	// 	})
+	// }
+
+	for _, v := range data {
 		uniqueID := uuidmodule.Uniquetoken()
-		cipherText := DataEncrypt(data[i].Content, data[i].Salt, kh)
+		cipherText := DataEncrypt(v.Content, v.Salt, kh)
 		temp = append(temp, encryption2.Data{
-			ID:     data[i].ID,
+			ID:     v.ID,
 			Token:  uniqueID,
 			Cipher: cipherText,
 		})
@@ -153,8 +164,38 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 	}
 
 	//Encryption
+	fmt.Println(len(content))
 	response := DataEncryptWrapper(content, keysetHandler)
-	render.JSON(w, req, response)
+
+	// store record
+	//item := make([]db.TokenData{} , len(response.Data))
+	item := make([]db.TokenData, len(response.Data))
+	//itenm4 := make([]db.TokenData)
+
+	// for i, v := range response.Data {
+	// 	item[i].Content = string(v.Cipher)
+	// 	item[i].Key = v.Token
+	// 	item[i].Level = level
+	// 	item[i].Meta = content[i].MetaData
+	// 	item[i].TokenID = strconv.Itoa(content[i].ID)
+	// 	item[i].CreatedAt = time.Now().String()
+	// 	item[i].UpdatedAt = time.Now().String()
+	// 	database.PutItem(item[i])
+	// }
+
+	for _, v := range response.Data {
+		item = append(item, db.TokenData{
+			Content:   string(v.Cipher),
+			Key:       v.Token,
+			Level:     level,
+			Meta:      "",
+			TokenID:   "1",
+			CreatedAt: time.Now().String(),
+			UpdatedAt: time.Now().String(),
+		})
+	}
+
+	render.JSON(w, req, item)
 	w.Write([]byte(keysetName))
 }
 

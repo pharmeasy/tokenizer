@@ -48,7 +48,7 @@ func LoadKeyset() map[string]*strings.Reader {
 	m := make(map[string]string)
 	err := json.Unmarshal(fileName, &m)
 	if err != nil {
-		panic(err)
+		logging.GetLogger().Error("Problem in unmarshal", zap.Error(err))
 	}
 	keysetmap := make(map[string]*strings.Reader)
 

@@ -79,6 +79,7 @@ func PutItem(item db.TokenData) error {
 
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -90,6 +91,7 @@ func PutItem(item db.TokenData) error {
 
 	_, err = dbSession.PutItem(input)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
