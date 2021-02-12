@@ -1,0 +1,117 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ prefix }}-{{ project_name }}-deployment
+  namespace: {{ namespace }}
+  labels:
+    k8s-app: {{ prefix }}-{{ project_name }}
+spec:
+  progressDeadlineSeconds: 60
+  revisionHistoryLimit: 1
+  replicas: {{ min_replicas }}
+  selector:
+    matchLabels:
+      k8s-app: {{ prefix }}-{{ project_name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: "{{ prefix }}-{{ project_name }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: k8s-app
+                operator: In
+                values:
+                - {{ prefix }}-{{ project_name }}
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: {{ project_name }}
+          image: "127603365779.dkr.ecr.ap-south-1.amazonaws.com/{{ project_name }}:{{ tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            failureThreshold: 20
+            httpGet:
+              path: /status
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 2
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /status
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 8
+            successThreshold: 1
+            timeoutSeconds: 2
+          envFrom:
+          - secretRef:
+              name: "{{ prefix }}-{{ project_name }}"
+          resources:
+            limits:
+              cpu: '1'
+              memory: 1Gi
+            requests:
+              cpu: 600m
+              memory: 600Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ prefix }}-{{ project_name }}-service
+  namespace: {{ namespace }}
+  labels:
+    k8s-svc: {{ prefix }}-{{ project_name }}-service
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    k8s-app: {{ prefix }}-{{ project_name }}
+  type: ClusterIP
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {{ prefix }}-{{ project_name }}-service-mapping
+  namespace: {{ namespace }}
+spec:
+  bypass_auth: true
+  host: {{ fqdn }}
+  prefix: /
+  service: {{ prefix }}-{{ project_name }}-service.{{ namespace }}:8080
+  timeout_ms: 10000
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta1
+metadata:
+  name: {{ prefix }}-{{ project_name }}-hpa
+  namespace: {{ namespace }}
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: {{ prefix }}-{{ project_name }}-deployment
+    apiVersion: apps/v1
+  minReplicas: {{ min_replicas }}
+  maxReplicas: {{ max_replicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 70
