@@ -9,7 +9,7 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
+	//"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/datadecryption"
@@ -141,7 +141,7 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 	// 	kms.DecryptKeyset()
 	// }
 	kms.DecryptKeyset()
-	KeysetArr := kms.KeysetName(kms.DecryptedKeysetMap)
+	KeysetArr := kms.GetKeyset(kms.DecryptedKeysetMap)
 	fmt.Println(len(KeysetArr))
 	fmt.Println(len(kms.DecryptedKeysetMap))
 	keysetName := kms.SelectKeyset(KeysetArr)
@@ -188,7 +188,7 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 			Content:   string(v.Cipher),
 			Key:       v.Token,
 			Level:     level,
-			Meta:      "",
+			Metadata:  "",
 			TokenID:   "1",
 			CreatedAt: time.Now().String(),
 			UpdatedAt: time.Now().String(),
@@ -295,10 +295,29 @@ func getTokenData(requestParams *decryption.Request) (*map[string]db.TokenData, 
 }
 
 func authorizeRequest(accessToken string) bool {
-	return true
+	var val bool
+
+	switch accessToken {
+	case "iron":
+		val = true
+	case "oms":
+		val = true
+	case "alloy":
+		val = true
+	default:
+		val = false
+	}
+
+	return val
 }
 
-func authorizeTokenAccess(*map[string]db.TokenData, int) bool {
+func authorizeTokenAccess(tokenData *map[string]db.TokenData, level int) bool {
+
+	for _, v := range *tokenData {
+		if level < v.Level {
+			return false
+		}
+	}
 	return true
 }
 
