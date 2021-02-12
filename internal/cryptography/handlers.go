@@ -3,48 +3,26 @@ package cryptography
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
-
-	//"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
-
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/datadecryption"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/decryption"
-
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
-
-	//"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
-	kms "bitbucket.org/pharmaeasyteam/tokenizer/internal/kms/aws"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/encryption"
-	encryption2 "bitbucket.org/pharmaeasyteam/tokenizer/internal/models/response/encryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/datadecryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/uuidmodule"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
-
 	"go.uber.org/zap"
 )
-
-//DataEncrypt returns the cipher text
-func DataEncrypt(data string, salt string, kh *keyset.Handle) []byte {
-	a, err := aead.New(kh)
-	if err != nil {
-		logging.GetLogger().Error("Problem in AEAD wrapper generation", zap.Error(err))
-	}
-
-	ct, err := a.Encrypt([]byte(data), []byte(salt))
-	if err != nil {
-		logging.GetLogger().Error("Problem in Encryption", zap.Error(err))
-	}
-
-	return ct
-}
 
 func DataDecrypt(cipherText string, salt string, kh *keyset.Handle) (*string, error) {
 	a, err := aead.New(kh)
@@ -64,36 +42,9 @@ func DataDecrypt(cipherText string, salt string, kh *keyset.Handle) (*string, er
 	return &plainText, nil
 }
 
-// DataEncryptWrapper is the main encryption function which gives us the response
-func DataEncryptWrapper(data []encryption.Data, kh *keyset.Handle) encryption2.Response {
-	var response encryption2.Response
-	temp := []encryption2.Data{}
-	// for i := 0; i < len(data); i++ {
-	// 	uniqueID := uuidmodule.Uniquetoken()
-	// 	cipherText := DataEncrypt(data[i].Content, data[i].Salt, kh)
-	// 	temp = append(temp, encryption2.Data{
-	// 		ID:     data[i].ID,
-	// 		Token:  uniqueID,
-	// 		Cipher: cipherText,
-	// 	})
-	// }
-
-	for _, v := range data {
-		uniqueID := uuidmodule.Uniquetoken()
-		cipherText := DataEncrypt(v.Content, v.Salt, kh)
-		temp = append(temp, encryption2.Data{
-			ID:     v.ID,
-			Token:  uniqueID,
-			Cipher: cipherText,
-		})
-	}
-	response.Data = temp
-	return response
-}
-
-func validateEncryptionRequest(req *http.Request) (*encryption.Request, error) {
+func validateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
 	decoder := json.NewDecoder(req.Body)
-	test := encryption.Request{}
+	test := encryption.EncryptRequest{}
 	err := decoder.Decode(&test)
 	if err != nil {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
@@ -111,7 +62,7 @@ func validateEncryptionRequest(req *http.Request) (*encryption.Request, error) {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
 		return nil, err
 	}
-	for _, v := range test.Data {
+	for _, v := range test.RequestData {
 		if v.Salt == "" || v.Content == "" {
 			return nil, err
 		}
@@ -134,71 +85,37 @@ func authorizeTokenAccessForEncryption(identifier string, level int) bool {
 	return true
 }
 
-// getTokens ...
-func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
-	// if len(kms.DecryptedKeysetMap) != 0 && len(kms.KeysetArr) != 0 {
-	// 	kms.KeysetArr = kms.KeysetName()
-	// 	kms.DecryptKeyset()
-	// }
-	kms.DecryptKeyset()
-	KeysetArr := kms.GetKeyset(kms.DecryptedKeysetMap)
-	fmt.Println(len(KeysetArr))
-	fmt.Println(len(kms.DecryptedKeysetMap))
-	keysetName := kms.SelectKeyset(KeysetArr)
-	keysetHandler := kms.DecryptedKeysetMap[keysetName]
+func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
+
 	//get parsed data
-	request, err := validateEncryptionRequest(req)
+	requestParams, err := validateEncryptionRequest(req)
 	if err != nil {
 		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
 		return
 	}
 
-	// validate access
-	isAuthorized := authorizeRequest(request.Identifier)
+	// validate identifier
+	isAuthorized := authorizeRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
 	}
 
-	isAuthorized = authorizeTokenAccessForEncryption(request.Identifier, request.Level)
+	// validate level
+	isAuthorized = authorizeTokenAccessForEncryption(requestParams.Identifier, requestParams.Level)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
 	}
 
-	//Encryption
-	response := DataEncryptWrapper(request.Data, keysetHandler)
-
-	// store record
-	//item := make([]db.TokenData{} , len(response.Data))
-	item := make([]db.TokenData, len(response.Data))
-	//itenm4 := make([]db.TokenData)
-
-	// for i, v := range response.Data {
-	// 	item[i].Content = string(v.Cipher)
-	// 	item[i].Key = v.Token
-	// 	item[i].Level = level
-	// 	item[i].Meta = content[i].MetaData
-	// 	item[i].TokenID = strconv.Itoa(content[i].ID)
-	// 	item[i].CreatedAt = time.Now().String()
-	// 	item[i].UpdatedAt = time.Now().String()
-	// 	database.PutItem(item[i])
-	// }
-
-	for _, v := range response.Data {
-		item = append(item, db.TokenData{
-			Content:   string(v.Cipher),
-			Key:       v.Token,
-			Level:     request.Level,
-			Metadata:  "",
-			TokenID:   "1",
-			CreatedAt: time.Now().String(),
-			UpdatedAt: time.Now().String(),
-		})
+	// encrypt data
+	encryptedData, err := encryptTokenData(requestParams)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while encrypting token data."))
+		return
 	}
 
-	render.JSON(w, req, item)
-	w.Write([]byte(keysetName))
+	render.JSON(w, req, encryptedData)
 }
 
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
@@ -220,7 +137,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// fetch records
 	tokenData, err := getTokenData(requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while fetching token data."))
+		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while fetching token data."))
 		return
 	}
 
@@ -317,6 +234,88 @@ func authorizeTokenAccess(tokenData *map[string]db.TokenData, level int) bool {
 	return true
 }
 
+func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.EncryptResponse, error) {
+	encryptionResponse := encryption.EncryptResponse{}
+	reqParamsData := requestParams.RequestData
+
+	// get keyset handler
+	keyName, keysetHandle, err := keysetmanager.GetKeysetHandlerForEncryption()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(reqParamsData); i++ {
+		// encrypt text
+		ciphertext, err := dataEncrypt(reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle)
+		if err != nil {
+			return nil, err
+		}
+
+		dbTokenData := db.TokenData{
+			Level:     requestParams.Level,
+			Content:   string(ciphertext),
+			CreatedAt: time.Now().Format(time.RFC3339),
+			UpdatedAt: time.Now().Format(time.RFC3339),
+			Key:       *keyName,
+			Metadata:  reqParamsData[i].Metadata,
+		}
+
+		token, err := storeEncryptedData(dbTokenData, 1)
+		if err != nil {
+			return nil, err
+		}
+
+		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
+			encryption.ResponseData{
+				ID:    reqParamsData[i].ID,
+				Token: *token,
+			})
+
+	}
+
+	return &encryptionResponse, nil
+}
+
+//DataEncrypt returns the cipher text
+func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
+	a, err := aead.New(kh)
+	if err != nil {
+		logging.GetLogger().Error("Problem in AEAD wrapper generation", zap.Error(err))
+		return nil, err
+	}
+
+	ct, err := a.Encrypt([]byte(data), []byte(salt))
+	if err != nil {
+		logging.GetLogger().Error("Problem in Encryption", zap.Error(err))
+		return nil, err
+	}
+
+	return ct, nil
+}
+
+func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) {
+	dbTokenData.TokenID = uuidmodule.Uniquetoken()
+	err := database.PutItem(dbTokenData)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeConditionalCheckFailedException:
+				logging.GetLogger().Error("Token ID clash detected.", zap.Error(err))
+				if attempt > 3 {
+					logging.GetLogger().Error("Token ID clash exceeded attempt threshold.", zap.Error(err))
+					return nil, err
+				}
+				attempt++
+				storeEncryptedData(dbTokenData, attempt)
+			default:
+				return nil, err
+			}
+		}
+	}
+
+	return &dbTokenData.TokenID, nil
+}
+
 func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decryption.Request) (*datadecryption.DecryptionResponse, error) {
 	decryptionResponse := datadecryption.DecryptionResponse{}
 	reqParamsData := requestParams.Data
@@ -325,7 +324,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 		dbTokenData := (*tokenData)[token]
 
 		// select keyset
-		kh, err := getKeysetHandle(dbTokenData.Key)
+		kh, err := keysetmanager.GetKeysetHandlerForDecryption(dbTokenData.Key)
 		if err != nil {
 			return nil, err
 		}
@@ -345,16 +344,6 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 	}
 
 	return &decryptionResponse, nil
-}
-
-func getKeysetHandle(handleName string) (*keyset.Handle, error) {
-	if kh, ok := kms.DecryptedKeysetMap[handleName]; ok {
-		return kh, nil
-	}
-	err := errors.New("Something went wrong while processing your request")
-	logging.GetLogger().Error("Valid keyset not found for handle name."+handleName, zap.Error(err))
-
-	return nil, err
 }
 
 func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) {
