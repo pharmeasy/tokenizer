@@ -91,36 +91,35 @@ func DataEncryptWrapper(data []encryption.Data, kh *keyset.Handle) encryption2.R
 	return response
 }
 
-func validateAndParseRequest(req *http.Request) ([]encryption.Data, string, int) {
-
+func validateEncryptionRequest(req *http.Request) (*encryption.Request, error) {
 	decoder := json.NewDecoder(req.Body)
 	test := encryption.Request{}
 	err := decoder.Decode(&test)
 	if err != nil {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+		return nil, err
 	}
-
-	// input validations
-	requestId := test.RequestID
-	identifier := test.Identifier
-	level := test.Level
-
-	if requestId == "" || identifier == "" || level < 1 {
+	if test.RequestID == "" {
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
-		return nil, "", -1
+		return nil, err
 	}
-
-	for i := 0; i < len(test.Data); i++ {
-		if test.Data[i].Content == "" || test.Data[i].Salt == "" {
-			return nil, "", -1
+	if test.Identifier == "" {
+		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+		return nil, err
+	}
+	if test.Level < 1 {
+		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+		return nil, err
+	}
+	for _, v := range test.Data {
+		if v.Salt == "" || v.Content == "" {
+			return nil, err
 		}
 	}
-	return test.Data, test.Identifier, test.Level
-
+	return &test, nil
 }
 
-// severity mapper function
-func validateMapper(identifier string, level int) int {
+func authorizeTokenAccessForEncryption(identifier string, level int) bool {
 	var list = map[string]int{
 		"iron":  1,
 		"oms":   2,
@@ -129,9 +128,10 @@ func validateMapper(identifier string, level int) int {
 
 	src := list[identifier]
 	if src < level {
-		return http.StatusForbidden
+		return false
 	}
-	return http.StatusOK
+
+	return true
 }
 
 // getTokens ...
@@ -147,25 +147,27 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 	keysetName := kms.SelectKeyset(KeysetArr)
 	keysetHandler := kms.DecryptedKeysetMap[keysetName]
 	//get parsed data
-	content, identifier, level := validateAndParseRequest(req)
-	// // check severity mapper
-	responseCode := validateMapper(identifier, level)
-
-	// malformed request
-	if content == nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, "Your request is malformed"))
+	request, err := validateEncryptionRequest(req)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
 		return
 	}
 
-	// forbidden request
-	if responseCode == 403 {
+	// validate access
+	isAuthorized := authorizeRequest(request.Identifier)
+	if !isAuthorized {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		return
+	}
+
+	isAuthorized = authorizeTokenAccessForEncryption(request.Identifier, request.Level)
+	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
 	}
 
 	//Encryption
-	fmt.Println(len(content))
-	response := DataEncryptWrapper(content, keysetHandler)
+	response := DataEncryptWrapper(request.Data, keysetHandler)
 
 	// store record
 	//item := make([]db.TokenData{} , len(response.Data))
@@ -187,7 +189,7 @@ func (c *ModuleCrypto) getTokens(w http.ResponseWriter, req *http.Request) {
 		item = append(item, db.TokenData{
 			Content:   string(v.Cipher),
 			Key:       v.Token,
-			Level:     level,
+			Level:     request.Level,
 			Metadata:  "",
 			TokenID:   "1",
 			CreatedAt: time.Now().String(),
@@ -295,20 +297,14 @@ func getTokenData(requestParams *decryption.Request) (*map[string]db.TokenData, 
 }
 
 func authorizeRequest(accessToken string) bool {
-	var val bool
 
-	switch accessToken {
-	case "iron":
-		val = true
-	case "oms":
-		val = true
-	case "alloy":
-		val = true
-	default:
-		val = false
+	accessTokenArr := []string{"iron", "oms", "alloy"}
+	for _, v := range accessTokenArr {
+		if v == accessToken {
+			return true
+		}
 	}
-
-	return val
+	return false
 }
 
 func authorizeTokenAccess(tokenData *map[string]db.TokenData, level int) bool {
