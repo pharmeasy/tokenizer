@@ -6,5 +6,6 @@ import "github.com/go-chi/chi"
 func (c *ModuleCrypto) RegisterRoutes(router chi.Router) {
 	router.Post("/v1/encrypt", c.getTokens)
 	router.Post("/v1/decrypt", c.decrypt)
-	router.Patch("/v1/metadata/update", c.updateMeta)
+	router.Post("/v1/metadata", c.getMetaData)
+	router.Put("/v1/metadata/update", c.updateMetadata)
 }

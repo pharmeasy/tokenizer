@@ -7,6 +7,7 @@ type Response struct {
 
 // Data is the struct for object
 type Data struct {
-	ID      string `json:"id"`
-	Content string `json:"content"`
+	Token    string `json:"token"`
+	Content  string `json:"content"`
+	Metadata string `json:"metadata"`
 }

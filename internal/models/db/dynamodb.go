@@ -8,5 +8,5 @@ type TokenData struct {
 	CreatedAt string
 	UpdatedAt string
 	Key       string
-	Meta      string
+	Metadata  string
 }

@@ -74,7 +74,7 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 }
 
 // PutItem stores the record in the db
-func PutItem(item db.TokenData) (error) {
+func PutItem(item db.TokenData) error {
 	getSession()
 
 	av, err := dynamodbattribute.MarshalMap(item)
@@ -89,6 +89,34 @@ func PutItem(item db.TokenData) (error) {
 	}
 
 	_, err = dbSession.PutItem(input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateMetadataByToken updated attributes in the existing record
+func UpdateMetadataByToken(tokenID string, metadata string) error {
+	getSession()
+
+	input := &dynamodb.UpdateItemInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":m": {
+				S: aws.String(metadata),
+			},
+		},
+		TableName: aws.String(tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"tokenId": {
+				S: aws.String(tokenID),
+			},
+		},
+		ReturnValues:     aws.String("UPDATED_NEW"),
+		UpdateExpression: aws.String("set Metadata = :m"),
+	}
+
+	_, err := dbSession.UpdateItem(input)
 	if err != nil {
 		return err
 	}
