@@ -6,7 +6,7 @@ metadata:
     eks.amazonaws.com/role-arn: arn:aws:iam::127603365779:role/{{ iamrole }}
   name: {{ project_name }}-sa
   namespace: {{ namespace }}
----
+--- 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -46,12 +46,12 @@ spec:
           image: "127603365779.dkr.ecr.ap-south-1.amazonaws.com/{{ project_name }}:{{ tag }}"
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 8083
           readinessProbe:
             failureThreshold: 20
             httpGet:
               path: /status
-              port: 8080
+              port: 8083
               scheme: HTTP
             initialDelaySeconds: 20
             periodSeconds: 5
@@ -61,7 +61,7 @@ spec:
             failureThreshold: 5
             httpGet:
               path: /status
-              port: 8080
+              port: 8083
               scheme: HTTP
             initialDelaySeconds: 20
             periodSeconds: 8
@@ -87,8 +87,8 @@ metadata:
     k8s-svc: {{ prefix }}-{{ project_name }}-service
 spec:
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: 8083
+      targetPort: 8083
       protocol: TCP
   selector:
     k8s-app: {{ prefix }}-{{ project_name }}
@@ -103,7 +103,7 @@ spec:
   bypass_auth: true
   host: {{ fqdn }}
   prefix: /
-  service: {{ prefix }}-{{ project_name }}-service.{{ namespace }}:8080
+  service: {{ prefix }}-{{ project_name }}-service.{{ namespace }}:8083
   timeout_ms: 10000
 ---
 kind: HorizontalPodAutoscaler
