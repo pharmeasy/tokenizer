@@ -138,7 +138,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// fetch records
 	tokenData, err := getTokenData(requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while fetching token data."))
+		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while fetching token data."))
 		return
 	}
 
@@ -152,7 +152,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// decrypt data
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encounteed while decrypting token data."))
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while decrypting token data."))
 		return
 	}
 
@@ -375,7 +375,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 
 	tokenData, err := database.GetItemsByToken(tokenIDs)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encounteed while fetching token data."))
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
 		return
 	}
 
@@ -466,7 +466,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	// fetch records
 	tokenData, err := database.GetItemsByToken(requestParams.Tokens)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encounteed while fetching token data."))
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
 		return
 	}
 
