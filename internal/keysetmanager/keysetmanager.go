@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keysetmodel"
 	"github.com/google/tink/go/aead"
@@ -38,7 +39,7 @@ func destringify(str string) (*strings.Reader, error) {
 }
 
 func loadKeyset() (map[string]*strings.Reader, error) {
-	fileName, err := ioutil.ReadFile("keysetmap.json")
+	fileName, err := ioutil.ReadFile("./keysetmap.json")
 	if err != nil {
 		logging.GetLogger().Error("Error encountered while reading the keyset file.", zap.Error(err))
 		return nil, err
