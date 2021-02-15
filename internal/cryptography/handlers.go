@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
@@ -253,6 +251,8 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Println(string(ciphertext))
 
 		dbTokenData := db.TokenData{
 			Level:     requestParams.Level,
