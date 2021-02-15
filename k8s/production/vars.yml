@@ -9,3 +9,4 @@ env_during_build: True
 min_replicas: 5
 max_replicas: 20
 profile: default
+iamrole: K8sRoleTokenizerProd
