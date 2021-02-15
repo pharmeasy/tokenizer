@@ -3,7 +3,6 @@ package keysetmanager
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
@@ -39,19 +38,15 @@ func destringify(str string) (*strings.Reader, error) {
 }
 
 func loadKeyset() (map[string]*strings.Reader, error) {
-	fileName, err := ioutil.ReadFile("/tokenizer/internal/keysetmanager/keysetmap.json")
-	if err != nil {
-		logging.GetLogger().Error("Error encountered while reading the keyset file.", zap.Error(err))
-		return nil, err
-	}
 
 	m := make(map[string]string)
-	err = json.Unmarshal(fileName, &m)
-	if err != nil {
-		logging.GetLogger().Error("Error encountered while unmarshalling the keyset file.", zap.Error(err))
-		return nil, err
-	}
+	m["ks1-1"] = "{\"encryptedKeyset\":\"AAAAqgECAgB4vGxY3UlR+bDOSItpS2xnoNeHuV+fYY0mdMOOdKKATKgBEnOuy9f/EZSEt//tlbJaHwAAAHAwbgYJKoZIhvcNAQcGoGEwXwIBADBaBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDGNy1Mv9AMbkI9ppdwIBEIAtgMwCo432GJ14Qg/j/cA9TtaDKzMOeUPByihWxwbYMobGrN6I4RtoR+fF8dmR/f9tHmriEKbPyTF571qPBta1gmYbWOZF8Vka1vL3+AXDdQM0wulg/eBi0N/Cy37NbOOUB2WdjQdfkp7xonDi9Upklcq4wsrfEr91CKy3zz2FfMw3IM9txrk12AlIpYNvDoDybkLjyrISfT3qIIUkidguO9QZpDno\",\"keysetInfo\":{\"primaryKeyId\":1938564032,\"keyInfo\":[{\"typeUrl\":\"type.googleapis.com/google.crypto.tink.AesGcmKey\",\"status\":\"ENABLED\",\"keyId\":1938564032,\"outputPrefixType\":\"TINK\"}]}}"
+	m["ks2-1"] = "{\"encryptedKeyset\":\"AAAAqgECAgB4vGxY3UlR+bDOSItpS2xnoNeHuV+fYY0mdMOOdKKATKgBA+JtJT9l5GguSvb7iWZVVwAAAHAwbgYJKoZIhvcNAQcGoGEwXwIBADBaBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDL7x1AuuhfL0vSz6DQIBEIAtvpAZmAHYU0GBqYnfYg2t53TyAcY2BT1xJAJ6F/uAJf43JPsjlr0BOGQ5f21bjNmvI8VG0HWOL0bPYQoRtKMquBSufqA/HSoKCi6QJaQ3I8qjzod6qawdZ2469en5MjhFElSxt3oxnCL1xjTKtUmP0Bg3d/m4MwTr2PQmvZjn38WZ4a4WNIifHn2Xck0yEjP55n5kNvOMBOgB4mFjGdAU9fd80izF\",\"keysetInfo\":{\"primaryKeyId\":765849618,\"keyInfo\":[{\"typeUrl\":\"type.googleapis.com/google.crypto.tink.AesGcmKey\",\"status\":\"ENABLED\",\"keyId\":765849618,\"outputPrefixType\":\"TINK\"}]}}"
+	m["ks3-1"] = "{\"encryptedKeyset\":\"AAAAqgECAgB4vGxY3UlR+bDOSItpS2xnoNeHuV+fYY0mdMOOdKKATKgBYMzySTxp/uTnvOz/SYubMgAAAHAwbgYJKoZIhvcNAQcGoGEwXwIBADBaBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBn1Oj+zJbB6l6N2DgIBEIAtyxz0vDGBdEHXO9g6oOn6V1xzbQ8t2x2e+jcPZ1e0VXiVUlbkFdglD+xEo3fbOMREBcocaggF5toNNX84Dm1n5f0fGUH1xD8NsgM9O33kJ46niBxmw17cUoVi1jb4X5LRiKqbfGVCna4AbrTOuiAmgIgx+vQ9KgXarnFKyZV9pNMbP3wqdLpIrIGlKC45oLhHBLGbSAqYLODaiIfey5j3GBL3biwp\",\"keysetInfo\":{\"primaryKeyId\":2501366831,\"keyInfo\":[{\"typeUrl\":\"type.googleapis.com/google.crypto.tink.AesGcmKey\",\"status\":\"ENABLED\",\"keyId\":2501366831,\"outputPrefixType\":\"TINK\"}]}}"
+	m["ks4-1"] = "{\"encryptedKeyset\":\"AAAAqgECAgB4vGxY3UlR+bDOSItpS2xnoNeHuV+fYY0mdMOOdKKATKgBb6/a0FiKQ6uegVNLH8N6sgAAAHAwbgYJKoZIhvcNAQcGoGEwXwIBADBaBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDAvd6QiQa0skdVyQvwIBEIAt0Iil9tQBX+1mpVH2dgCdRT6LwXMRKVvw3GMovClqhVMo4FBg2g5W6ylYtERDwHzKa86iA+ELPb67PAPM2yOyTuYB75owXZTHLw+d147/qMtdHw/VigUvOKU46BeRD1CaZY/JZ3SWWnUsl/1gO7aebvKKVMfpK3Ayj6RPS7XsLvu+84Z8XK2zDNVlDiqCiJokSq4OzS4TCGORTpwWLT5slBixGFqv\",\"keysetInfo\":{\"primaryKeyId\":3905263506,\"keyInfo\":[{\"typeUrl\":\"type.googleapis.com/google.crypto.tink.AesGcmKey\",\"status\":\"ENABLED\",\"keyId\":3905263506,\"outputPrefixType\":\"TINK\"}]}}"
+
 	keysetmap := make(map[string]*strings.Reader)
+	var err error
 
 	for k, v := range m {
 		keysetmap[k], err = destringify(strconv.Quote(v))
