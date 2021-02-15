@@ -86,6 +86,10 @@ func authorizeTokenAccessForEncryption(identifier string, level int) bool {
 	return true
 }
 
+func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte("ok"))
+}
+
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 
 	//get parsed data
