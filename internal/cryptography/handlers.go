@@ -52,19 +52,23 @@ func validateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 		return nil, err
 	}
 	if test.RequestID == "" {
+		err = errors.New("your request is malformed")
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
 		return nil, err
 	}
 	if test.Identifier == "" {
+		err = errors.New("your request is malformed")
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
 		return nil, err
 	}
 	if test.Level < 1 {
+		err = errors.New("your request is malformed")
 		logging.GetLogger().Error("Problem in input params", zap.Error(err))
 		return nil, err
 	}
 	for _, v := range test.RequestData {
 		if v.Salt == "" || v.Content == "" {
+			err = errors.New("your request is malformed")
 			return nil, err
 		}
 	}
