@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/datadecryption"
@@ -47,42 +48,30 @@ func validateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 	test := encryption.EncryptRequest{}
 	err := decoder.Decode(&test)
 	if err != nil {
-		logging.GetLogger().Error("Problem in input params", zap.Error(err))
+		logging.GetLogger().Error("Error encountered with input params", zap.Error(err))
 		return nil, err
 	}
+
+	genericError := errors.New("Invalid request parameters passed.")
+
 	if test.RequestID == "" {
-		logging.GetLogger().Error("Problem in input params", zap.Error(err))
-		return nil, err
+		logging.GetLogger().Error("RequestID is empty")
+		return nil, genericError
 	}
 	if test.Identifier == "" {
-		logging.GetLogger().Error("Problem in input params", zap.Error(err))
-		return nil, err
+		logging.GetLogger().Error("Identifier is empty")
+		return nil, genericError
 	}
-	if test.Level < 1 {
-		logging.GetLogger().Error("Problem in input params", zap.Error(err))
-		return nil, err
+	if test.Level == "" {
+		logging.GetLogger().Error("Level is empty")
+		return nil, genericError
 	}
 	for _, v := range test.RequestData {
-		if v.Salt == "" || v.Content == "" {
-			return nil, err
+		if v.Content == "" {
+			return nil, genericError
 		}
 	}
 	return &test, nil
-}
-
-func authorizeTokenAccessForEncryption(identifier string, level int) bool {
-	var list = map[string]int{
-		"iron":  1,
-		"oms":   2,
-		"alloy": 3,
-	}
-
-	src := list[identifier]
-	if src < level {
-		return false
-	}
-
-	return true
 }
 
 func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
@@ -99,14 +88,14 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// validate identifier
-	isAuthorized := authorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
 	}
 
 	// validate level
-	isAuthorized = authorizeTokenAccessForEncryption(requestParams.Identifier, requestParams.Level)
+	isAuthorized = identity.AuthorizeTokenAccessForEncryption(requestParams.Identifier, requestParams.Level)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -132,7 +121,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// validate access
-	isAuthorized := authorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -175,7 +164,7 @@ func validateDecryptionRequest(req *http.Request) (*decryption.Request, error) {
 
 	genericError := errors.New("Invalid request parameters passed.")
 
-	if params.Level < 1 {
+	if params.Level == "" {
 		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
 		return nil, genericError
 	}
@@ -217,18 +206,7 @@ func getTokenData(requestParams *decryption.Request) (*map[string]db.TokenData, 
 	return &tokenData, nil
 }
 
-func authorizeRequest(accessToken string) bool {
-
-	accessTokenArr := []string{"iron", "oms", "alloy"}
-	for _, v := range accessTokenArr {
-		if v == accessToken {
-			return true
-		}
-	}
-	return false
-}
-
-func authorizeTokenAccess(tokenData *map[string]db.TokenData, level int) bool {
+func authorizeTokenAccess(tokenData *map[string]db.TokenData, level string) bool {
 
 	for _, v := range *tokenData {
 		if level < v.Level {
@@ -360,7 +338,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	}
 
 	// validate access
-	isAuthorized := authorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -409,7 +387,7 @@ func validateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 
 	genericError := errors.New("Invalid request parameters passed.")
 
-	if params.Level < 1 {
+	if params.Level == "" {
 		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
 		return nil, genericError
 	}
@@ -458,7 +436,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// validate access
-	isAuthorized := authorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -495,7 +473,7 @@ func validateMetadataRequest(req *http.Request) (*metadata.MetaRequest, error) {
 
 	genericError := errors.New("Invalid request parameters passed.")
 
-	if params.Level < 1 {
+	if params.Level == "" {
 		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
 		return nil, genericError
 	}

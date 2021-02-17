@@ -7,7 +7,7 @@ type EncryptResponse struct {
 
 // ResponseData is the struct for object
 type ResponseData struct {
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 	Token string `json:"token"`
 }
 
@@ -15,13 +15,13 @@ type ResponseData struct {
 type EncryptRequest struct {
 	RequestID   string        `json:"requestId"`
 	Identifier  string        `json:"identifier"`
-	Level       int           `json:"level"`
+	Level       string        `json:"level"`
 	RequestData []RequestData `json:"data"`
 }
 
 // RequestData represents the data field in the incoming encryption request
 type RequestData struct {
-	ID       int    `json:"id"`
+	ID       string `json:"id"`
 	Content  string `json:"content"`
 	Salt     string `json:"salt"`
 	Metadata string `json:"metadata"`

@@ -4,7 +4,7 @@ package decryption
 type Request struct {
 	RequestID  string `json:"requestId"`
 	Identifier string `json:"identifier"`
-	Level      int    `json:"level"`
+	Level      string `json:"level"`
 	Data       []Data `json:"data"`
 }
 
