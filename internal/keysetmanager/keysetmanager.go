@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keysetmodel"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keyset"
 	"github.com/google/tink/go/integration/awskms"
 	"github.com/google/tink/go/keyset"
 	"go.uber.org/zap"

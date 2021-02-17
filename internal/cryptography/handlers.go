@@ -12,11 +12,10 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/datadecryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -45,33 +44,34 @@ func DataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, er
 
 func validateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
 	decoder := json.NewDecoder(req.Body)
-	test := encryption.EncryptRequest{}
-	err := decoder.Decode(&test)
+	encryptionRequest := encryption.EncryptRequest{}
+	err := decoder.Decode(&encryptionRequest)
 	if err != nil {
 		logging.GetLogger().Error("Error encountered with input params", zap.Error(err))
 		return nil, err
 	}
 
-	genericError := errors.New("Invalid request parameters passed.")
+	genericError := errors.New("invalid request parameters passed")
 
-	if test.RequestID == "" {
+	if encryptionRequest.RequestID == "" {
 		logging.GetLogger().Error("RequestID is empty")
 		return nil, genericError
 	}
-	if test.Identifier == "" {
+	if encryptionRequest.Identifier == "" {
 		logging.GetLogger().Error("Identifier is empty")
 		return nil, genericError
 	}
-	if test.Level == "" {
+	if encryptionRequest.Level == "" {
 		logging.GetLogger().Error("Level is empty")
 		return nil, genericError
 	}
-	for _, v := range test.RequestData {
+
+	for _, v := range encryptionRequest.RequestData {
 		if v.Content == "" {
 			return nil, genericError
 		}
 	}
-	return &test, nil
+	return &encryptionRequest, nil
 }
 
 func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
@@ -152,10 +152,10 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 }
 
-func validateDecryptionRequest(req *http.Request) (*decryption.Request, error) {
+func validateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, error) {
 
 	decoder := json.NewDecoder(req.Body)
-	params := decryption.Request{}
+	params := decryption.DecryptRequest{}
 	err := decoder.Decode(&params)
 	if err != nil {
 		logging.GetLogger().Error("Unable to decode decryption request params.", zap.Error(err))
@@ -174,13 +174,13 @@ func validateDecryptionRequest(req *http.Request) (*decryption.Request, error) {
 		return nil, genericError
 	}
 
-	for i := 0; i < len(params.Data); i++ {
-		if params.Data[i].Token == "" {
+	for i := 0; i < len(params.DecryptRequestData); i++ {
+		if params.DecryptRequestData[i].Token == "" {
 			logging.GetLogger().Error("Empty token passed.", zap.Error(err))
 			return nil, genericError
 		}
 
-		if params.Data[i].Salt == "" {
+		if params.DecryptRequestData[i].Salt == "" {
 			logging.GetLogger().Error("Empty salt passed.", zap.Error(err))
 			return nil, genericError
 		}
@@ -189,13 +189,13 @@ func validateDecryptionRequest(req *http.Request) (*decryption.Request, error) {
 	return &params, nil
 }
 
-func getTokenData(requestParams *decryption.Request) (*map[string]db.TokenData, error) {
+func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.TokenData, error) {
 
-	payloadSize := len(requestParams.Data)
+	payloadSize := len(requestParams.DecryptRequestData)
 	tokenIDs := make([]string, payloadSize)
 
 	for i := 0; i < payloadSize; i++ {
-		tokenIDs[i] = requestParams.Data[i].Token
+		tokenIDs[i] = requestParams.DecryptRequestData[i].Token
 	}
 
 	tokenData, err := database.GetItemsByToken(tokenIDs)
@@ -298,9 +298,9 @@ func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) 
 	return &dbTokenData.TokenID, nil
 }
 
-func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decryption.Request) (*datadecryption.DecryptionResponse, error) {
-	decryptionResponse := datadecryption.DecryptionResponse{}
-	reqParamsData := requestParams.Data
+func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decryption.DecryptRequest) (*decryption.DecryptResponse, error) {
+	decryptionResponse := decryption.DecryptResponse{}
+	reqParamsData := requestParams.DecryptRequestData
 	for i := 0; i < len(reqParamsData); i++ {
 		token := reqParamsData[i].Token
 		dbTokenData := (*tokenData)[token]
@@ -318,7 +318,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 		}
 
 		decryptionResponse.DecryptionResponseData = append(decryptionResponse.DecryptionResponseData,
-			datadecryption.DecryptionResponseData{
+			decryption.DecryptResponseData{
 				Token:    tokenmanager.FormatToken(token),
 				Content:  *decryptedText,
 				Metadata: dbTokenData.Metadata,
