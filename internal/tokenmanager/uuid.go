@@ -1,4 +1,4 @@
-package uuidmodule
+package tokenmanager
 
 import (
 	"github.com/google/uuid"
@@ -7,10 +7,10 @@ import (
 // Uniquetoken() ...
 func Uniquetoken() string {
 	unique_id := uuid.New()
-	return append(unique_id.String())
+	return unique_id.String()
 }
 
-func append(token string) string {
+func FormatToken(token string) string {
 	appendString := "token://a1/"
 	appendString = appendString + token
 	return appendString

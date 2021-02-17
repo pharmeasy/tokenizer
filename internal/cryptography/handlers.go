@@ -17,7 +17,7 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/request/decryption"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/uuidmodule"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/tink/go/aead"
@@ -275,7 +275,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
 			encryption.ResponseData{
 				ID:    reqParamsData[i].ID,
-				Token: *token,
+				Token: tokenmanager.FormatToken(*token),
 			})
 
 	}
@@ -301,7 +301,7 @@ func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 }
 
 func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) {
-	dbTokenData.TokenID = uuidmodule.Uniquetoken()
+	dbTokenData.TokenID = tokenmanager.Uniquetoken()
 	err := database.PutItem(dbTokenData)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -344,7 +344,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 
 		decryptionResponse.DecryptionResponseData = append(decryptionResponse.DecryptionResponseData,
 			datadecryption.DecryptionResponseData{
-				Token:    token,
+				Token:    tokenmanager.FormatToken(token),
 				Content:  *decryptedText,
 				Metadata: dbTokenData.Metadata,
 			})
@@ -524,7 +524,7 @@ func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
 	for _, dbTokenData := range tokenData {
 		metaResponse.MetaParams = append(metaResponse.MetaParams,
 			metadata.MetaParams{
-				Token:    dbTokenData.TokenID,
+				Token:    tokenmanager.FormatToken(dbTokenData.TokenID),
 				Metadata: dbTokenData.Metadata,
 			})
 	}
