@@ -3,7 +3,6 @@ package cryptography
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -255,8 +254,6 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Println(string(ciphertext))
 
 		dbTokenData := db.TokenData{
 			Level:     requestParams.Level,
