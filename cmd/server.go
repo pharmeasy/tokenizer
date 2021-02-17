@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"context"
+
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/server"
 	"bitbucket.org/pharmaeasyteam/tokenizer/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/cryptography"
-	"context"
 	"github.com/spf13/cobra"
 )
 
@@ -37,8 +38,8 @@ func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 		server.WithGlobalConfig(&cfg.Server),
 	)
 
-// Add the crypto module
-	svr.AddModule("crypto", cryptography.New(*cfg))
+	// Add the crypto module
+	svr.AddModule("crypto", cryptography.New(cfg.LoadEnvModule))
 
 	svr.Start(ctx)
 	logging.GetLogger().Info("Shutting down")

@@ -87,7 +87,7 @@ func authorizeTokenAccessForEncryption(identifier string, level int) bool {
 }
 
 func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
-	w.Write([]byte("ok"))
+	w.Write([]byte(c.LoadEnvModule.KeysetName.KeysetName1))
 }
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
