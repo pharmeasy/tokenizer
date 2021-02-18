@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
@@ -55,8 +56,8 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 		}
 
 		// throw 5xx
-		if len(result.Item) == 0 {
-			return nil, err
+		if result.Item == nil {
+			return nil, errors.New("your request is malformed")
 		}
 
 		item := db.TokenData{}
@@ -114,8 +115,9 @@ func UpdateMetadataByToken(tokenID string, metadata string) error {
 				S: aws.String(tokenID),
 			},
 		},
-		ReturnValues:     aws.String("UPDATED_NEW"),
-		UpdateExpression: aws.String("set Metadata = :m"),
+		ReturnValues:        aws.String("UPDATED_NEW"),
+		UpdateExpression:    aws.String("set Metadata = :m"),
+		ConditionExpression: aws.String("attribute_not_exists(tokenID)"),
 	}
 
 	_, err := dbSession.UpdateItem(input)
