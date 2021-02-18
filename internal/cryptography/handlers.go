@@ -144,7 +144,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// decrypt data
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while decrypting token data."))
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while decrypting token data."))
 		return
 	}
 
