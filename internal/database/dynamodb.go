@@ -55,7 +55,7 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 		}
 
 		// throw 5xx
-		if result.Item == nil {
+		if len(result.Item) == 0 {
 			return nil, err
 		}
 
