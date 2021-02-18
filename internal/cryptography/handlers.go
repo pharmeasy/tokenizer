@@ -213,9 +213,12 @@ func authorizeTokenAccess(tokenData *map[string]db.TokenData, level string, iden
 
 	for _, v := range *tokenData {
 
-		level, _ := strconv.Atoi(level)
+		level, err := strconv.Atoi(level)
+		if err != nil {
+			return false
+		}
 		Level, _ := strconv.Atoi(v.Level)
-		if level > Level || levelOfIdentifier > level {
+		if level < Level || levelOfIdentifier > Level {
 			return false
 		}
 	}

@@ -16,8 +16,11 @@ func IdentifierMap() map[string]int {
 func AuthorizeTokenAccessForEncryption(identifier string, level string) bool {
 	IdentifierMap := IdentifierMap()
 	src := IdentifierMap[identifier]
-	i, _ := strconv.Atoi(level)
-	if src < i {
+	i, err := strconv.Atoi(level)
+	if err != nil {
+		return false
+	}
+	if src > i {
 		return false
 	}
 
