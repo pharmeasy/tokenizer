@@ -2,7 +2,7 @@ package identity
 
 import "strconv"
 
-func identifierMap() map[string]int {
+func IdentifierMap() map[string]int {
 	IdentifierMapper := map[string]int{
 		"IRON":  1,
 		"ALLOY": 2,
@@ -14,8 +14,8 @@ func identifierMap() map[string]int {
 
 // AuthorizeTokenAccessForEncryption checks the level of the identifier
 func AuthorizeTokenAccessForEncryption(identifier string, level string) bool {
-	identifierMap := identifierMap()
-	src := identifierMap[identifier]
+	IdentifierMap := IdentifierMap()
+	src := IdentifierMap[identifier]
 	i, _ := strconv.Atoi(level)
 	if src < i {
 		return false
@@ -27,8 +27,8 @@ func AuthorizeTokenAccessForEncryption(identifier string, level string) bool {
 // AuthorizeRequest checks for a valid identifier
 func AuthorizeRequest(accessToken string) bool {
 
-	identifierMap := identifierMap()
-	for key, _ := range identifierMap {
+	IdentifierMap := IdentifierMap()
+	for key, _ := range IdentifierMap {
 		if key == accessToken {
 			return true
 		}

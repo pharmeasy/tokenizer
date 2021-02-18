@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
@@ -135,7 +136,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// authorize token access
-	isAuthorized = authorizeTokenAccess(tokenData, requestParams.Level)
+	isAuthorized = authorizeTokenAccess(tokenData, requestParams.Level, requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -206,13 +207,19 @@ func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.Toke
 	return &tokenData, nil
 }
 
-func authorizeTokenAccess(tokenData *map[string]db.TokenData, level string) bool {
+func authorizeTokenAccess(tokenData *map[string]db.TokenData, level string, identifier string) bool {
+	identifierMap := identity.IdentifierMap()
+	levelOfIdentifier := identifierMap[identifier]
 
 	for _, v := range *tokenData {
-		if level < v.Level {
+
+		level, _ := strconv.Atoi(level)
+		Level, _ := strconv.Atoi(v.Level)
+		if level > Level || levelOfIdentifier > level {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -359,7 +366,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	}
 
 	// authorize token access
-	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level)
+	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -450,7 +457,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// authorize token access
-	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level)
+	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
