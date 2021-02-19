@@ -2,7 +2,6 @@ package config
 
 import (
 	"strings"
-	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/config"
 	"github.com/spf13/viper"
@@ -15,22 +14,10 @@ type TokenizerConfig struct {
 }
 
 type LoadEnvModule struct {
-	BaseURL        string
-	Token          string
-	Timeout        time.Duration
-	MaxConnections int
-	KeysetName     KeysetName
-	KeysetValue    KeysetValue
-}
-
-type KeysetName struct {
-	KeysetName1 string
-	KeysetName2 string
-	KeysetName3 string
-	KeysetName4 string
-}
-
-type KeysetValue struct {
+	KeysetName1  string
+	KeysetName2  string
+	KeysetName3  string
+	KeysetName4  string
 	KeysetValue1 string
 	KeysetValue2 string
 	KeysetValue3 string
@@ -44,20 +31,14 @@ func InitViper(viper *viper.Viper) {
 	viper.SetEnvKeyReplacer(replacer)
 	config.InitViper(viper, "server")
 
-	viper.SetDefault("LoadEnvModule.BaseURL", "")
-	viper.SetDefault("LoadEnvModule.Token", "")
-	viper.SetDefault("LoadEnvModule.timeout", 5000*time.Millisecond)
-	viper.SetDefault("LoadEnvModule.MaxConnections", 300)
-
-	viper.SetDefault("LoadEnvModule.KeysetName.KeysetName1", "")
-	viper.SetDefault("LoadEnvModule.KeysetName.KeysetName2", "")
-	viper.SetDefault("LoadEnvModule.KeysetName.KeysetName3", "")
-	viper.SetDefault("LoadEnvModule.KeysetName.KeysetName4", "")
-
-	viper.SetDefault("LoadEnvModule.KeysetValue.KeysetValue1", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue.KeysetValue2", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue.KeysetValue3", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue.KeysetValue4", "")
+	viper.SetDefault("LoadEnvModule.KeysetName1", "")
+	viper.SetDefault("LoadEnvModule.KeysetName2", "")
+	viper.SetDefault("LoadEnvModule.KeysetName3", "")
+	viper.SetDefault("LoadEnvModule.KeysetName4", "")
+	viper.SetDefault("LoadEnvModule.KeysetValue1", "")
+	viper.SetDefault("LoadEnvModule.KeysetValue2", "")
+	viper.SetDefault("LoadEnvModule.KeysetValue3", "")
+	viper.SetDefault("LoadEnvModule.KeysetValue4", "")
 }
 
 //Load Load configuration variables from file

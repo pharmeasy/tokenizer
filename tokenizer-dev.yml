@@ -13,7 +13,11 @@ server:
   respondingtimeouts:
     readtimeout: 3000ms
 loadenvmodule:
-  baseurl:
-  token:
-  timeout:
-  maxconnections:
+  keysetname1:
+  keysetname2:
+  keysetname3:
+  keysetname4:
+  keysetvalue1:
+  keysetvalue2:
+  keysetvalue3:
+  keysetvalue4:

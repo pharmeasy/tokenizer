@@ -76,7 +76,7 @@ func validateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 }
 
 func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
-	w.Write([]byte(c.LoadEnvModule.KeysetName.KeysetName1))
+	w.Write([]byte(c.LoadEnvModule.KeysetName1 + "\n" + c.LoadEnvModule.KeysetValue1))
 }
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
