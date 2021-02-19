@@ -4,7 +4,7 @@ package metadata
 type MetaUpdateRequest struct {
 	RequestID    string         `json:"requestId"`
 	Identifier   string         `json:"identifier"`
-	Level        int            `json:"level"`
+	Level        string         `json:"level"`
 	UpdateParams []UpdateParams `json:"data"`
 }
 
@@ -12,7 +12,7 @@ type MetaUpdateRequest struct {
 type MetaRequest struct {
 	RequestID  string   `json:"requestId"`
 	Identifier string   `json:"identifier"`
-	Level      int      `json:"level"`
+	Level      string   `json:"level"`
 	Tokens     []string `json:"tokens"`
 }
 
