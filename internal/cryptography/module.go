@@ -5,6 +5,7 @@ import (
 
 	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/config"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/validator"
 )
 
 //ModuleCrypto ...
@@ -19,5 +20,5 @@ func New(worldconfig config.TokenizerConfig) *ModuleCrypto {
 
 // Init ...
 func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
-
+	validator.SetGenericError()
 }

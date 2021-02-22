@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var errorGeneric = errors.New("invalid request parameters passed")
+var errorGeneric error
 
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request
 func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
@@ -146,4 +146,9 @@ func logEmptyError(value string) {
 // logDecodeError logs errors in decoding
 func logDecodeError(value string, err error) {
 	logging.GetLogger().Error("Unable to decode "+value+" request params", zap.Error(err))
+}
+
+// SetGenericError sets generic error upon app load
+func SetGenericError() {
+	errorGeneric = errors.New("invalid request parameters passed")
 }
