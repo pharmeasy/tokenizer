@@ -39,7 +39,9 @@ func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 	)
 
 	// Add the crypto module
-	svr.AddModule("crypto", cryptography.New(cfg.LoadEnvModule))
+	svr.AddModule("crypto", &cryptography.ModuleCrypto{
+		LoadEnvModule: cfg.LoadEnvModule,
+	})
 
 	svr.Start(ctx)
 	logging.GetLogger().Info("Shutting down")
