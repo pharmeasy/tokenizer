@@ -12,12 +12,3 @@ server:
     port: 8125
   respondingtimeouts:
     readtimeout: 3000ms
-loadenvmodule:
-  keysetname1:
-  keysetname2:
-  keysetname3:
-  keysetname4:
-  keysetvalue1:
-  keysetvalue2:
-  keysetvalue3:
-  keysetvalue4:
