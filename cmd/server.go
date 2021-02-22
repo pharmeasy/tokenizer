@@ -5,7 +5,7 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/server"
-	"bitbucket.org/pharmaeasyteam/tokenizer/config"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/cryptography"
 	"github.com/spf13/cobra"
 )

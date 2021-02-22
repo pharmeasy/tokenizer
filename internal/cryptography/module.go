@@ -4,7 +4,7 @@ import (
 	"context"
 
 	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
-	"bitbucket.org/pharmaeasyteam/tokenizer/config"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/config"
 )
 
 //ModuleCrypto ...
