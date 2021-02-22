@@ -1,8 +1,6 @@
 package cryptography
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -18,6 +16,7 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/validator"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/tink/go/aead"
@@ -25,64 +24,14 @@ import (
 	"go.uber.org/zap"
 )
 
-func DataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
-	a, err := aead.New(kh)
-	if err != nil {
-		logging.GetLogger().Error("Error encountered while initializing aead handler", zap.Error(err))
-		return nil, err
-	}
-
-	pt, err := a.Decrypt(cipherText, []byte(salt))
-	if err != nil {
-		logging.GetLogger().Error("Error encountered while decrypting data", zap.Error(err))
-		return nil, err
-	}
-
-	plainText := string(pt)
-
-	return &plainText, nil
-}
-
-func validateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
-	decoder := json.NewDecoder(req.Body)
-	encryptionRequest := encryption.EncryptRequest{}
-	err := decoder.Decode(&encryptionRequest)
-	if err != nil {
-		logging.GetLogger().Error("Error encountered with input params", zap.Error(err))
-		return nil, err
-	}
-
-	genericError := errors.New("invalid request parameters passed")
-
-	if encryptionRequest.RequestID == "" {
-		logging.GetLogger().Error("RequestID is empty")
-		return nil, genericError
-	}
-	if encryptionRequest.Identifier == "" {
-		logging.GetLogger().Error("Identifier is empty")
-		return nil, genericError
-	}
-	if encryptionRequest.Level == "" {
-		logging.GetLogger().Error("Level is empty")
-		return nil, genericError
-	}
-
-	for _, v := range encryptionRequest.RequestData {
-		if v.Content == "" {
-			return nil, genericError
-		}
-	}
-	return &encryptionRequest, nil
-}
-
 func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("ok"))
 }
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 
-	//get parsed data
-	requestParams, err := validateEncryptionRequest(req)
+	// get parsed data
+	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
 		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
 		return
@@ -115,13 +64,13 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 	// validate request params
-	requestParams, err := validateDecryptionRequest(req)
+	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
 		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
 		return
 	}
 
-	// validate access
+	// validate identifier
 	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
@@ -153,41 +102,86 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 }
 
-func validateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, error) {
+func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 
-	decoder := json.NewDecoder(req.Body)
-	params := decryption.DecryptRequest{}
-	err := decoder.Decode(&params)
+	// validate request params
+	requestParams, err := validator.ValidateMetadataRequest(req)
 	if err != nil {
-		logging.GetLogger().Error("Unable to decode decryption request params.", zap.Error(err))
-		return nil, err
+		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
+		return
 	}
 
-	genericError := errors.New("Invalid request parameters passed.")
-
-	if params.Level == "" {
-		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
-		return nil, genericError
+	// validate access
+	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
+	if !isAuthorized {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		return
 	}
 
-	if params.Identifier == "" {
-		logging.GetLogger().Error("Identifier is empty.", zap.Error(err))
-		return nil, genericError
+	// fetch records
+	tokenData, err := database.GetItemsByToken(requestParams.Tokens)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
+		return
 	}
 
-	for i := 0; i < len(params.DecryptRequestData); i++ {
-		if params.DecryptRequestData[i].Token == "" {
-			logging.GetLogger().Error("Empty token passed.", zap.Error(err))
-			return nil, genericError
-		}
-
-		if params.DecryptRequestData[i].Salt == "" {
-			logging.GetLogger().Error("Empty salt passed.", zap.Error(err))
-			return nil, genericError
-		}
+	// authorize token access
+	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
+	if !isAuthorized {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		return
 	}
 
-	return &params, nil
+	// return metadata
+	metadataResponse := getMetaItems(tokenData)
+	render.JSON(w, req, metadataResponse)
+}
+
+func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) {
+
+	// validate request params
+	requestParams, err := validator.ValidateMetadataUpdateRequest(req)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+	// validate access
+	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
+	if !isAuthorized {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		return
+	}
+
+	// fetch records
+	payloadSize := len(requestParams.UpdateParams)
+	tokenIDs := make([]string, payloadSize)
+
+	for i := 0; i < payloadSize; i++ {
+		tokenIDs[i] = requestParams.UpdateParams[i].Token
+	}
+
+	tokenData, err := database.GetItemsByToken(tokenIDs)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
+		return
+	}
+
+	// authorize token access
+	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
+	if !isAuthorized {
+		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		return
+	}
+
+	// update metadata
+	err = updateMetaItems(requestParams)
+	if err != nil {
+		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while updating metadata."+err.Error()))
+		return
+	}
+
+	render.JSON(w, req, "Metadata updated successfully.")
 }
 
 func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.TokenData, error) {
@@ -268,7 +262,6 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 	return &encryptionResponse, nil
 }
 
-//DataEncrypt returns the cipher text
 func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 	a, err := aead.New(kh)
 	if err != nil {
@@ -283,6 +276,23 @@ func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 	}
 
 	return ct, nil
+}
+func dataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
+	a, err := aead.New(kh)
+	if err != nil {
+		logging.GetLogger().Error("Error encountered while initializing aead handler", zap.Error(err))
+		return nil, err
+	}
+
+	pt, err := a.Decrypt(cipherText, []byte(salt))
+	if err != nil {
+		logging.GetLogger().Error("Error encountered while decrypting data", zap.Error(err))
+		return nil, err
+	}
+
+	plainText := string(pt)
+
+	return &plainText, nil
 }
 
 func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) {
@@ -322,7 +332,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 		}
 
 		// decrypt with salt
-		decryptedText, err := DataDecrypt(dbTokenData.Content, reqParamsData[i].Salt, kh)
+		decryptedText, err := dataDecrypt(dbTokenData.Content, reqParamsData[i].Salt, kh)
 		if err != nil {
 			return nil, err
 		}
@@ -338,90 +348,6 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 	return &decryptionResponse, nil
 }
 
-func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) {
-
-	// validate request params
-	requestParams, err := validateMetadataUpdateRequest(req)
-	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	// validate access
-	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
-	}
-
-	// fetch records
-	payloadSize := len(requestParams.UpdateParams)
-	tokenIDs := make([]string, payloadSize)
-
-	for i := 0; i < payloadSize; i++ {
-		tokenIDs[i] = requestParams.UpdateParams[i].Token
-	}
-
-	tokenData, err := database.GetItemsByToken(tokenIDs)
-	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
-		return
-	}
-
-	// authorize token access
-	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
-	}
-
-	// update metadata
-	err = updateMetaItems(requestParams)
-	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while updating metadata."+err.Error()))
-		return
-	}
-
-	render.JSON(w, req, "Metadata updated successfully.")
-}
-
-func validateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateRequest, error) {
-
-	decoder := json.NewDecoder(req.Body)
-	params := metadata.MetaUpdateRequest{}
-	err := decoder.Decode(&params)
-	if err != nil {
-		logging.GetLogger().Error("Unable to decode metadata request params.", zap.Error(err))
-		return nil, err
-	}
-
-	genericError := errors.New("Invalid request parameters passed.")
-
-	if params.Level == "" {
-		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
-		return nil, genericError
-	}
-
-	if params.Identifier == "" {
-		logging.GetLogger().Error("Identifier is empty.", zap.Error(err))
-		return nil, genericError
-	}
-
-	for i := 0; i < len(params.UpdateParams); i++ {
-		if params.UpdateParams[i].Token == "" {
-			logging.GetLogger().Error("Empty token passed.", zap.Error(err))
-			return nil, genericError
-		}
-
-		if params.UpdateParams[i].Metadata == "" {
-			logging.GetLogger().Error("Empty metadata passed.", zap.Error(err))
-			return nil, genericError
-		}
-	}
-
-	return &params, nil
-}
-
 func updateMetaItems(requestParams *metadata.MetaUpdateRequest) error {
 
 	payloadSize := len(requestParams.UpdateParams)
@@ -434,73 +360,6 @@ func updateMetaItems(requestParams *metadata.MetaUpdateRequest) error {
 	}
 
 	return nil
-}
-
-func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
-
-	// validate request params
-	requestParams, err := validateMetadataRequest(req)
-	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	// validate access
-	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
-	}
-
-	// fetch records
-	tokenData, err := database.GetItemsByToken(requestParams.Tokens)
-	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
-		return
-	}
-
-	// authorize token access
-	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
-	}
-
-	// return metadata
-	metadataResponse := getMetaItems(tokenData)
-	render.JSON(w, req, metadataResponse)
-}
-
-func validateMetadataRequest(req *http.Request) (*metadata.MetaRequest, error) {
-
-	decoder := json.NewDecoder(req.Body)
-	params := metadata.MetaRequest{}
-	err := decoder.Decode(&params)
-	if err != nil {
-		logging.GetLogger().Error("Unable to decode metadata request params.", zap.Error(err))
-		return nil, err
-	}
-
-	genericError := errors.New("Invalid request parameters passed.")
-
-	if params.Level == "" {
-		logging.GetLogger().Error("Invalid Level.", zap.Error(err))
-		return nil, genericError
-	}
-
-	if params.Identifier == "" {
-		logging.GetLogger().Error("Identifier is empty.", zap.Error(err))
-		return nil, genericError
-	}
-
-	for i := 0; i < len(params.Tokens); i++ {
-		if params.Tokens[i] == "" {
-			logging.GetLogger().Error("Empty token passed.", zap.Error(err))
-			return nil, genericError
-		}
-	}
-
-	return &params, nil
 }
 
 func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
