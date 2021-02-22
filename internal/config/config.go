@@ -9,11 +9,11 @@ import (
 
 //TokenizerConfig app configuration
 type TokenizerConfig struct {
-	Server        config.ServerConfig
-	LoadEnvModule LoadEnvModule
+	Server     config.ServerConfig
+	LoadModule LoadModule
 }
 
-type LoadEnvModule struct {
+type LoadModule struct {
 	KeysetName1  string
 	KeysetName2  string
 	KeysetName3  string
@@ -31,14 +31,14 @@ func InitViper(viper *viper.Viper) {
 	viper.SetEnvKeyReplacer(replacer)
 	config.InitViper(viper, "server")
 
-	viper.SetDefault("LoadEnvModule.KeysetName1", "")
-	viper.SetDefault("LoadEnvModule.KeysetName2", "")
-	viper.SetDefault("LoadEnvModule.KeysetName3", "")
-	viper.SetDefault("LoadEnvModule.KeysetName4", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue1", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue2", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue3", "")
-	viper.SetDefault("LoadEnvModule.KeysetValue4", "")
+	viper.SetDefault("LoadModule.KeysetName1", "")
+	viper.SetDefault("LoadModule.KeysetName2", "")
+	viper.SetDefault("LoadModule.KeysetName3", "")
+	viper.SetDefault("LoadModule.KeysetName4", "")
+	viper.SetDefault("LoadModule.KeysetValue1", "")
+	viper.SetDefault("LoadModule.KeysetValue2", "")
+	viper.SetDefault("LoadModule.KeysetValue3", "")
+	viper.SetDefault("LoadModule.KeysetValue4", "")
 }
 
 //Load Load configuration variables from file

@@ -9,12 +9,12 @@ import (
 
 //ModuleCrypto ...
 type ModuleCrypto struct {
-	LoadEnvModule config.LoadEnvModule
+	LoadModule config.LoadModule
 }
 
 //New ...
-func New(worldconfig config.LoadEnvModule) *ModuleCrypto {
-	return &ModuleCrypto{LoadEnvModule: worldconfig}
+func New(worldconfig config.LoadModule) *ModuleCrypto {
+	return &ModuleCrypto{LoadModule: worldconfig}
 }
 
 // Init ...

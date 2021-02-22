@@ -40,7 +40,7 @@ func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 
 	// Add the crypto module
 	svr.AddModule("crypto", &cryptography.ModuleCrypto{
-		LoadEnvModule: cfg.LoadEnvModule,
+		LoadModule: cfg.LoadModule,
 	})
 
 	svr.Start(ctx)
