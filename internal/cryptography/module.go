@@ -18,6 +18,6 @@ func New(worldconfig config.LoadModule) *ModuleCrypto {
 }
 
 // Init ...
-func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
+func (c *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 
 }

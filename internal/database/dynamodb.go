@@ -12,7 +12,8 @@ import (
 )
 
 var dbSession *dynamodb.DynamoDB
-var tableName string
+
+//var tableName string
 
 // GetSession creates a session if not present
 func getSession() {
@@ -24,18 +25,18 @@ func getSession() {
 		dbSession = dynamodb.New(sess)
 	}
 
-	if tableName == "" {
-		getTableName()
-	}
+	// if tableName == "" {
+
+	// }
 }
 
 // GetTableName gets the table name
-func getTableName() {
-	tableName = "staging_tokens"
-}
+// func getTableName() {
+// 	tableName = "staging_tokens"
+// }
 
 // GetItemsByToken Gets the token record from the db
-func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
+func GetItemsByToken(tokenIDs []string, tableName string) (map[string]db.TokenData, error) {
 	getSession()
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
@@ -75,7 +76,7 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 }
 
 // PutItem stores the record in the db
-func PutItem(item db.TokenData) error {
+func PutItem(item db.TokenData, tableName string) error {
 	getSession()
 
 	av, err := dynamodbattribute.MarshalMap(item)
@@ -100,7 +101,7 @@ func PutItem(item db.TokenData) error {
 }
 
 // UpdateMetadataByToken updated attributes in the existing record
-func UpdateMetadataByToken(tokenID string, metadata string) error {
+func UpdateMetadataByToken(tokenID string, metadata string, tableName string) error {
 	getSession()
 
 	input := &dynamodb.UpdateItemInput{

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keyset"
+	keysetmodel "bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keyset"
 	"github.com/google/tink/go/integration/awskms"
 	"github.com/google/tink/go/keyset"
 	"go.uber.org/zap"
@@ -35,18 +35,18 @@ func destringify(str string) (*strings.Reader, error) {
 	return myReader, nil
 }
 
-func loadKeyset() (map[string]*strings.Reader, error) {
+func loadKeyset(keymap map[string]string) (map[string]*strings.Reader, error) {
 
-	m := make(map[string]string)
-	m["ks1-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-	m["ks2-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-	m["ks3-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-	m["ks4-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
+	// m := make(map[string]string)
+	// m["ks1-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
+	// m["ks2-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
+	// m["ks3-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
+	// m["ks4-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
 
 	keysetmap := make(map[string]*strings.Reader)
 	var err error
 
-	for k, v := range m {
+	for k, v := range keymap {
 		keysetmap[k], err = destringify(strconv.Quote(v))
 		if err != nil {
 			logging.GetLogger().Error("Error encountered while destringifying the keyset file.", zap.Error(err))
@@ -58,9 +58,9 @@ func loadKeyset() (map[string]*strings.Reader, error) {
 }
 
 // DecryptKeyset decrypts the keyset and stores in memory
-func decryptKeyset(keysetmap map[string]*strings.Reader) error {
+func decryptKeyset(keysetmap map[string]*strings.Reader, keyURI string) error {
 
-	keyURI := "aws-kms://arn:aws:kms:ap-south-1:127603365779:key/8d853831-94e6-4ac7-a0c7-3e2795e9715b"
+	//keyURI := "aws-kms://arn:aws:kms:ap-south-1:127603365779:key/8d853831-94e6-4ac7-a0c7-3e2795e9715b"
 
 	kmsClient, err := awskms.NewClient(keyURI)
 	if err != nil {
@@ -112,17 +112,17 @@ func getRandomizedKeyset() (*string, *keyset.Handle, error) {
 }
 
 // InitKeysets initializes the keysets
-func initKeysets() error {
+func initKeysets(keymap map[string]string, keyURI string) error {
 	if len(decryptedKeysetMap) != 0 {
 		return nil
 	}
 	// read from source
-	keysetmap, err := loadKeyset()
+	keysetmap, err := loadKeyset(keymap)
 	if err != nil {
 		return err
 	}
 	// decrypt & store the keysets in memory
-	err = decryptKeyset(keysetmap)
+	err = decryptKeyset(keysetmap, keyURI)
 	if err != nil {
 		return err
 	}
@@ -131,8 +131,8 @@ func initKeysets() error {
 }
 
 // GetKeysetHandlerForEncryption returns a random key handler for encryption process
-func GetKeysetHandlerForEncryption() (*string, *keyset.Handle, error) {
-	err := initKeysets()
+func GetKeysetHandlerForEncryption(keymap map[string]string, keyURI string) (*string, *keyset.Handle, error) {
+	err := initKeysets(keymap, keyURI)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,8 +146,8 @@ func GetKeysetHandlerForEncryption() (*string, *keyset.Handle, error) {
 }
 
 // GetKeysetHandlerForDecryption returns a random key handler for decryption process
-func GetKeysetHandlerForDecryption(keysetName string) (*keyset.Handle, error) {
-	err := initKeysets()
+func GetKeysetHandlerForDecryption(keysetName string, keymap map[string]string, keyURI string) (*keyset.Handle, error) {
+	err := initKeysets(keymap, keyURI)
 	if err != nil {
 		return nil, err
 	}

@@ -25,6 +25,10 @@ import (
 	"go.uber.org/zap"
 )
 
+var keysetmap = make(map[string]string)
+var keyURI string
+var tableName string
+
 func DataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
 	a, err := aead.New(kh)
 	if err != nil {
@@ -81,6 +85,15 @@ func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 
+	if len(keysetmap) == 0 {
+		keysetmap[c.LoadModule.KeysetName1] = c.LoadModule.KeysetValue1
+		keysetmap[c.LoadModule.KeysetName2] = c.LoadModule.KeysetValue2
+		keysetmap[c.LoadModule.KeysetName3] = c.LoadModule.KeysetValue3
+		keysetmap[c.LoadModule.KeysetName4] = c.LoadModule.KeysetValue4
+		keyURI = c.LoadModule.AWSKMSKey
+		tableName = c.LoadModule.DynamoDBTableName
+	}
+
 	//get parsed data
 	requestParams, err := validateEncryptionRequest(req)
 	if err != nil {
@@ -113,6 +126,15 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 }
 
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
+
+	if len(keysetmap) == 0 {
+		keysetmap[c.LoadModule.KeysetName1] = c.LoadModule.KeysetValue1
+		keysetmap[c.LoadModule.KeysetName2] = c.LoadModule.KeysetValue2
+		keysetmap[c.LoadModule.KeysetName3] = c.LoadModule.KeysetValue3
+		keysetmap[c.LoadModule.KeysetName4] = c.LoadModule.KeysetValue4
+		keyURI = c.LoadModule.AWSKMSKey
+		tableName = c.LoadModule.DynamoDBTableName
+	}
 
 	// validate request params
 	requestParams, err := validateDecryptionRequest(req)
@@ -199,7 +221,7 @@ func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.Toke
 		tokenIDs[i] = requestParams.DecryptRequestData[i].Token
 	}
 
-	tokenData, err := database.GetItemsByToken(tokenIDs)
+	tokenData, err := database.GetItemsByToken(tokenIDs, tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +253,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 	reqParamsData := requestParams.RequestData
 
 	// get keyset handler
-	keyName, keysetHandle, err := keysetmanager.GetKeysetHandlerForEncryption()
+	keyName, keysetHandle, err := keysetmanager.GetKeysetHandlerForEncryption(keysetmap, keyURI)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +309,7 @@ func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 
 func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) {
 	dbTokenData.TokenID = tokenmanager.Uniquetoken()
-	err := database.PutItem(dbTokenData)
+	err := database.PutItem(dbTokenData, tableName)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -316,7 +338,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 		dbTokenData := (*tokenData)[token]
 
 		// select keyset
-		kh, err := keysetmanager.GetKeysetHandlerForDecryption(dbTokenData.Key)
+		kh, err := keysetmanager.GetKeysetHandlerForDecryption(dbTokenData.Key, keysetmap, keyURI)
 		if err != nil {
 			return nil, err
 		}
@@ -340,6 +362,15 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 
 func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) {
 
+	if len(keysetmap) == 0 {
+		keysetmap[c.LoadModule.KeysetName1] = c.LoadModule.KeysetValue1
+		keysetmap[c.LoadModule.KeysetName2] = c.LoadModule.KeysetValue2
+		keysetmap[c.LoadModule.KeysetName3] = c.LoadModule.KeysetValue3
+		keysetmap[c.LoadModule.KeysetName4] = c.LoadModule.KeysetValue4
+		keyURI = c.LoadModule.AWSKMSKey
+		tableName = c.LoadModule.DynamoDBTableName
+	}
+
 	// validate request params
 	requestParams, err := validateMetadataUpdateRequest(req)
 	if err != nil {
@@ -362,7 +393,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 		tokenIDs[i] = requestParams.UpdateParams[i].Token
 	}
 
-	tokenData, err := database.GetItemsByToken(tokenIDs)
+	tokenData, err := database.GetItemsByToken(tokenIDs, tableName)
 	if err != nil {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
 		return
@@ -427,7 +458,7 @@ func updateMetaItems(requestParams *metadata.MetaUpdateRequest) error {
 	payloadSize := len(requestParams.UpdateParams)
 	for i := 0; i < payloadSize; i++ {
 
-		err := database.UpdateMetadataByToken(requestParams.UpdateParams[i].Token, requestParams.UpdateParams[i].Metadata)
+		err := database.UpdateMetadataByToken(requestParams.UpdateParams[i].Token, requestParams.UpdateParams[i].Metadata, tableName)
 		if err != nil {
 			return err
 		}
@@ -437,6 +468,15 @@ func updateMetaItems(requestParams *metadata.MetaUpdateRequest) error {
 }
 
 func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
+
+	if len(keysetmap) == 0 {
+		keysetmap[c.LoadModule.KeysetName1] = c.LoadModule.KeysetValue1
+		keysetmap[c.LoadModule.KeysetName2] = c.LoadModule.KeysetValue2
+		keysetmap[c.LoadModule.KeysetName3] = c.LoadModule.KeysetValue3
+		keysetmap[c.LoadModule.KeysetName4] = c.LoadModule.KeysetValue4
+		keyURI = c.LoadModule.AWSKMSKey
+		tableName = c.LoadModule.DynamoDBTableName
+	}
 
 	// validate request params
 	requestParams, err := validateMetadataRequest(req)
@@ -453,7 +493,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// fetch records
-	tokenData, err := database.GetItemsByToken(requestParams.Tokens)
+	tokenData, err := database.GetItemsByToken(requestParams.Tokens, tableName)
 	if err != nil {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
 		return
@@ -515,4 +555,13 @@ func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
 	}
 
 	return &metaResponse
+}
+
+func (c *ModuleCrypto) load() {
+	if len(keysetmap) == 0 {
+		keysetmap[c.LoadModule.KeysetName1] = c.LoadModule.KeysetValue1
+		keysetmap[c.LoadModule.KeysetName2] = c.LoadModule.KeysetValue2
+		keysetmap[c.LoadModule.KeysetName3] = c.LoadModule.KeysetValue3
+		keysetmap[c.LoadModule.KeysetName4] = c.LoadModule.KeysetValue4
+	}
 }

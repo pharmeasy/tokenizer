@@ -13,15 +13,19 @@ type TokenizerConfig struct {
 	LoadModule LoadModule
 }
 
+// LoadModule is used to load env variables from vault
 type LoadModule struct {
-	KeysetName1  string
-	KeysetName2  string
-	KeysetName3  string
-	KeysetName4  string
-	KeysetValue1 string
-	KeysetValue2 string
-	KeysetValue3 string
-	KeysetValue4 string
+	KeysetName1       string
+	KeysetName2       string
+	KeysetName3       string
+	KeysetName4       string
+	KeysetValue1      string
+	KeysetValue2      string
+	KeysetValue3      string
+	KeysetValue4      string
+	AWSKMSKey         string
+	DynamoDBTableName string
+	InstanceID        string
 }
 
 //InitViper viper initialisation
@@ -39,6 +43,9 @@ func InitViper(viper *viper.Viper) {
 	viper.SetDefault("LoadModule.KeysetValue2", "")
 	viper.SetDefault("LoadModule.KeysetValue3", "")
 	viper.SetDefault("LoadModule.KeysetValue4", "")
+	viper.SetDefault("LoadModule.AWSKMSKey", "")
+	viper.SetDefault("LoadModule.DynamoDBTableName", "")
+	viper.SetDefault("LoadModule.InstanceID", "")
 }
 
 //Load Load configuration variables from file
