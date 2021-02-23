@@ -17,30 +17,36 @@ var errorGeneric error
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request
 func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
 	decoder := json.NewDecoder(req.Body)
-	encryptionRequest := encryption.EncryptRequest{}
-	err := decoder.Decode(&encryptionRequest)
+	params := encryption.EncryptRequest{}
+	err := decoder.Decode(&params)
 	if err != nil {
 		logDecodeError("encryption", err)
 		return nil, errorGeneric
 	}
 
-	if encryptionRequest.Identifier == "" {
+	if params.RequestID == "" {
+		logEmptyError("Request ID")
+		return nil, errorGeneric
+	}
+
+	if params.Identifier == "" {
 		logEmptyError("Identifier")
 		return nil, errorGeneric
 	}
-	if encryptionRequest.Level == "" {
+
+	if params.Level == "" {
 		logEmptyError("Level")
 		return nil, errorGeneric
 	}
 
-	for _, v := range encryptionRequest.RequestData {
+	for _, v := range params.RequestData {
 		if v.Content == "" {
 			logEmptyError("Content")
 			return nil, errorGeneric
 		}
 	}
 
-	return &encryptionRequest, nil
+	return &params, nil
 }
 
 // ValidateDecryptionRequest provides validation logic for the incoming decryption request
@@ -50,6 +56,11 @@ func ValidateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, e
 	err := decoder.Decode(&params)
 	if err != nil {
 		logDecodeError("decryption", err)
+		return nil, errorGeneric
+	}
+
+	if params.RequestID == "" {
+		logEmptyError("Request ID")
 		return nil, errorGeneric
 	}
 
@@ -83,6 +94,11 @@ func ValidateMetadataRequest(req *http.Request) (*metadata.MetaRequest, error) {
 		return nil, errorGeneric
 	}
 
+	if params.RequestID == "" {
+		logEmptyError("Request ID")
+		return nil, errorGeneric
+	}
+
 	if params.Level == "" {
 		logEmptyError("Level")
 		return nil, errorGeneric
@@ -110,6 +126,11 @@ func ValidateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 	err := decoder.Decode(&params)
 	if err != nil {
 		logDecodeError("metadata update", err)
+		return nil, errorGeneric
+	}
+
+	if params.RequestID == "" {
+		logEmptyError("Request ID")
 		return nil, errorGeneric
 	}
 
