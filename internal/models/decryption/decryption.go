@@ -16,7 +16,6 @@ type DecryptResponseData struct {
 type DecryptRequest struct {
 	RequestID          string               `json:"requestId"`
 	Identifier         string               `json:"identifier"`
-	Level              string               `json:"level"`
 	DecryptRequestData []DecryptRequestData `json:"data"`
 }
 

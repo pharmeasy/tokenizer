@@ -1,19 +1,35 @@
 package identity
 
-import "strconv"
+import (
+	"strconv"
+
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
+
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
+)
 
 func IdentifierMap() map[string]int {
 	IdentifierMapper := map[string]int{
-		"IRON":  1,
-		"ALLOY": 2,
-		"OMS":   3,
+		"TRANSFORMATION":   1,
+		"FFOMS":            2,
+		"TELECONSULTATION": 3,
 	}
 
 	return IdentifierMapper
 }
 
-// AuthorizeTokenAccessForEncryption checks the level of the identifier
-func AuthorizeTokenAccessForEncryption(identifier string, level string) bool {
+// AuthorizeLevelForEncryption checks the level of the identifier for an encryption request
+func AuthorizeLevelForEncryption(requestData *encryption.EncryptRequest) bool {
+	for i := 0; i < len(requestData.EncryptRequestData); i++ {
+		if !authorizeIdentifierByLevel(requestData.Identifier, requestData.EncryptRequestData[i].Level) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func authorizeIdentifierByLevel(identifier string, level string) bool {
 	IdentifierMap := IdentifierMap()
 	src := IdentifierMap[identifier]
 	i, err := strconv.Atoi(level)
@@ -27,8 +43,8 @@ func AuthorizeTokenAccessForEncryption(identifier string, level string) bool {
 	return true
 }
 
-// AuthorizeRequest checks for a valid identifier
-func AuthorizeRequest(accessToken string) bool {
+// AuthenticateRequest checks for a valid identifier
+func AuthenticateRequest(accessToken string) bool {
 
 	IdentifierMap := IdentifierMap()
 	for key, _ := range IdentifierMap {
@@ -38,4 +54,26 @@ func AuthorizeRequest(accessToken string) bool {
 	}
 
 	return false
+}
+
+func getAccessLevelByIdentifier(identifier string) *int {
+	if level, ok := IdentifierMap()[identifier]; ok {
+		return &level
+	}
+
+	return nil
+}
+
+// AuthorizeTokenAccess authorizes token access using identifer and corresponding level
+func AuthorizeTokenAccess(tokenData *map[string]db.TokenData, identifier string) bool {
+	levelOfIdentifier := getAccessLevelByIdentifier(identifier)
+
+	for _, token := range *tokenData {
+		tokenLevel, _ := strconv.Atoi(token.Level)
+		if tokenLevel < *levelOfIdentifier {
+			return false
+		}
+	}
+
+	return true
 }

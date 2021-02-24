@@ -13,15 +13,15 @@ type ResponseData struct {
 
 // EncryptRequest represents the successful encryption request
 type EncryptRequest struct {
-	RequestID   string        `json:"requestId"`
-	Identifier  string        `json:"identifier"`
-	Level       string        `json:"level"`
-	RequestData []RequestData `json:"data"`
+	RequestID          string               `json:"requestId"`
+	Identifier         string               `json:"identifier"`
+	EncryptRequestData []EncryptRequestData `json:"data"`
 }
 
-// RequestData represents the data field in the incoming encryption request
-type RequestData struct {
+// EncryptRequestData represents the data field in the incoming encryption request
+type EncryptRequestData struct {
 	ID       string `json:"id"`
+	Level    string `json:"level"`
 	Content  string `json:"content"`
 	Salt     string `json:"salt"`
 	Metadata string `json:"metadata"`

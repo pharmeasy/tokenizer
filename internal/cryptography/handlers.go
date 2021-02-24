@@ -2,7 +2,6 @@ package cryptography
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
@@ -38,14 +37,14 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// validate identifier
-	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
 	}
 
-	// validate level
-	isAuthorized = identity.AuthorizeTokenAccessForEncryption(requestParams.Identifier, requestParams.Level)
+	// authorize encryption levels
+	isAuthorized = identity.AuthorizeLevelForEncryption(requestParams)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -71,7 +70,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// validate identifier
-	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -85,7 +84,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// authorize token access
-	isAuthorized = authorizeTokenAccess(tokenData, requestParams.Level, requestParams.Identifier)
+	isAuthorized = identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -112,7 +111,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// validate access
-	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -126,7 +125,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// authorize token access
-	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
+	isAuthorized = identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -147,7 +146,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	}
 
 	// validate access
-	isAuthorized := identity.AuthorizeRequest(requestParams.Identifier)
+	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -168,7 +167,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	}
 
 	// authorize token access
-	isAuthorized = authorizeTokenAccess(&tokenData, requestParams.Level, requestParams.Identifier)
+	isAuthorized = identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
 	if !isAuthorized {
 		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
 		return
@@ -201,28 +200,9 @@ func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.Toke
 	return &tokenData, nil
 }
 
-func authorizeTokenAccess(tokenData *map[string]db.TokenData, level string, identifier string) bool {
-	identifierMap := identity.IdentifierMap()
-	levelOfIdentifier := identifierMap[identifier]
-
-	for _, v := range *tokenData {
-
-		level, err := strconv.Atoi(level)
-		if err != nil {
-			return false
-		}
-		Level, _ := strconv.Atoi(v.Level)
-		if level < Level || levelOfIdentifier > Level {
-			return false
-		}
-	}
-
-	return true
-}
-
 func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.EncryptResponse, error) {
 	encryptionResponse := encryption.EncryptResponse{}
-	reqParamsData := requestParams.RequestData
+	reqParamsData := requestParams.EncryptRequestData
 
 	// get keyset handler
 	keyName, keysetHandle, err := keysetmanager.GetKeysetHandlerForEncryption()
@@ -238,7 +218,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 		}
 
 		dbTokenData := db.TokenData{
-			Level:     requestParams.Level,
+			Level:     reqParamsData[i].Level,
 			Content:   ciphertext,
 			CreatedAt: time.Now().Format(time.RFC3339),
 			UpdatedAt: time.Now().Format(time.RFC3339),

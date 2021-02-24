@@ -34,12 +34,12 @@ func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 		return nil, errorGeneric
 	}
 
-	if params.Level == "" {
-		logEmptyError("Level", params.RequestID)
-		return nil, errorGeneric
-	}
+	for _, v := range params.EncryptRequestData {
+		if v.Level == "" {
+			logEmptyError("Level", params.RequestID)
+			return nil, errorGeneric
+		}
 
-	for _, v := range params.RequestData {
 		if v.Content == "" {
 			logEmptyError("Content", params.RequestID)
 			return nil, errorGeneric
@@ -61,11 +61,6 @@ func ValidateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, e
 
 	if params.RequestID == "" {
 		logEmptyError("Request ID", params.RequestID)
-		return nil, errorGeneric
-	}
-
-	if params.Level == "" {
-		logEmptyError("Level", params.RequestID)
 		return nil, errorGeneric
 	}
 
@@ -99,11 +94,6 @@ func ValidateMetadataRequest(req *http.Request) (*metadata.MetaRequest, error) {
 		return nil, errorGeneric
 	}
 
-	if params.Level == "" {
-		logEmptyError("Level", params.RequestID)
-		return nil, errorGeneric
-	}
-
 	if params.Identifier == "" {
 		logEmptyError("Identifier", params.RequestID)
 		return nil, errorGeneric
@@ -131,11 +121,6 @@ func ValidateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 
 	if params.RequestID == "" {
 		logEmptyError("Request ID", params.RequestID)
-		return nil, errorGeneric
-	}
-
-	if params.Level == "" {
-		logEmptyError("Level", params.RequestID)
 		return nil, errorGeneric
 	}
 
