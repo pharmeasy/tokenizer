@@ -1,4 +1,4 @@
-package badresponse
+package errorresponse
 
 import (
 	"net/http"

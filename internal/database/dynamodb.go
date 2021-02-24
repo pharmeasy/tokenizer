@@ -1,8 +1,9 @@
 package database
 
 import (
-	"errors"
 	"fmt"
+
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
 	"github.com/aws/aws-sdk-go/aws"
@@ -49,22 +50,20 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 			},
 		})
 
-		// throw 5xx
 		if err != nil {
-			fmt.Println(err)
-			return nil, err
+			return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item for tokenID %s", tokenID), err)
 		}
 
 		// throw 5xx
 		if result.Item == nil {
-			return nil, errors.New("your request is malformed")
+			return nil, errormanager.SetError(fmt.Sprintf("DynamoDB Item not found for tokenID %s", tokenID), nil)
 		}
 
 		item := db.TokenData{}
 
 		err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 		if err != nil {
-			panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+			return nil, errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record, %v for tokenID %s", err, tokenID), err)
 		}
 
 		itemsByTokenIDs[tokenID] = item
@@ -80,8 +79,7 @@ func PutItem(item db.TokenData) error {
 
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record for PutItem with tokenID %s", item.TokenID), err)
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -92,7 +90,6 @@ func PutItem(item db.TokenData) error {
 
 	_, err = dbSession.PutItem(input)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -122,7 +119,7 @@ func UpdateMetadataByToken(tokenID string, metadata string) error {
 
 	_, err := dbSession.UpdateItem(input)
 	if err != nil {
-		return err
+		return errormanager.SetError(fmt.Sprintf("Failed to execute DynamoDB UpdateItem for tokenID %s", tokenID), err)
 	}
 
 	return nil

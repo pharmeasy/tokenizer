@@ -8,9 +8,9 @@ import (
 	"go.uber.org/zap"
 
 	"bitbucket.org/pharmaeasyteam/goframework/render"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/errorresponse"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 )
 
@@ -54,11 +54,6 @@ func SetEncryptionError(requestParams *encryption.EncryptRequest, err error, sta
 	return genericError
 }
 
-// RenderEncryptionErrorResponse renders encryption error response
-func RenderEncryptionErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
-	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
-}
-
 // SetValidationEmptyError sets an empty error
 func SetValidationEmptyError(value string) error {
 	return errors.New(value + " is blank")
@@ -71,12 +66,30 @@ func SetValidationDecodeError(requestType string, err error) error {
 
 // SetError Sets error based on error context
 func SetError(errorContext string, err error) error {
+	if err == nil {
+		return errors.New(errorContext)
+	}
 	return errors.New(errorContext + err.Error())
+}
+
+// RenderEncryptionErrorResponse renders encryption error response
+func RenderEncryptionErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
 }
 
 // RenderDecryptionErrorResponse renders decryption error response
 func RenderDecryptionErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
-	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
+	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
+}
+
+// RenderGetMetadataErrorResponse renders get metadata by tokens error response
+func RenderGetMetadataErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
+}
+
+// RenderUpdateMetadataErrorResponse renders updatemetadata error response
+func RenderUpdateMetadataErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
 }
 
 //SetDecryptionError logs non sensitive encryption data and returns a generic error
@@ -94,11 +107,6 @@ func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, sta
 	return genericError
 }
 
-// RenderGetMetadataErrorResponse renders get metadata by tokens error response
-func RenderGetMetadataErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
-	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
-}
-
 // SetMetadataError logs non sensitive metadata related information and returns a generic error
 func SetMetadataError(requestParams *metadata.MetaRequest, err error, status uint) error {
 	genericError := getGenericErrorByStatus(status)
@@ -111,11 +119,6 @@ func SetMetadataError(requestParams *metadata.MetaRequest, err error, status uin
 	}
 	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
 	return genericError
-}
-
-// RenderUpdateMetadataErrorResponse renders updatemetadata error response
-func RenderUpdateMetadataErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
-	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
 }
 
 // SetUpdateMetadataError logs non sensitive updatemetadata related information and returns a generic error

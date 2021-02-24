@@ -10,8 +10,6 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 )
 
-var errorGeneric error
-
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request
 func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
 	decoder := json.NewDecoder(req.Body)

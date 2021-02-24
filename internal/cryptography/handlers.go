@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
-
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
@@ -78,6 +77,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	if !isAuthenticated {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
+		return
 	}
 
 	// fetch records
@@ -85,6 +85,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
+		return
 	}
 
 	// authorize token access
@@ -92,6 +93,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	if !isAuthorized {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
+		return
 	}
 
 	// decrypt data
@@ -99,6 +101,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
+		return
 	}
 
 	render.JSON(w, req, decryptedData)
@@ -112,6 +115,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusBadRequest,
 			errormanager.SetMetadataError(requestParams, err, http.StatusBadRequest))
+		return
 	}
 
 	// validate access
@@ -119,6 +123,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	if !isAuthenticated {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetMetadataError(requestParams, nil, http.StatusForbidden))
+		return
 	}
 
 	// fetch records
@@ -126,6 +131,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetMetadataError(requestParams, err, http.StatusInternalServerError))
+		return
 	}
 
 	// authorize token access
@@ -133,10 +139,12 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	if !isAuthorized {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetMetadataError(requestParams, nil, http.StatusForbidden))
+		return
 	}
 
 	// return metadata
 	metadataResponse := getMetaItems(tokenData)
+
 	render.JSON(w, req, metadataResponse)
 }
 
@@ -147,6 +155,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusBadRequest,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusBadRequest))
+		return
 	}
 
 	// validate access
@@ -154,6 +163,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	if !isAuthenticated {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetUpdateMetadataError(requestParams, nil, http.StatusForbidden))
+		return
 	}
 
 	// fetch records
@@ -168,6 +178,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
+		return
 	}
 
 	// authorize token access
@@ -175,6 +186,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	if !isAuthorized {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetUpdateMetadataError(requestParams, nil, http.StatusForbidden))
+		return
 	}
 
 	// update metadata
@@ -182,6 +194,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
+		return
 	}
 
 	render.JSON(w, req, "Metadata updated successfully.")
@@ -216,7 +229,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 
 	for i := 0; i < len(reqParamsData); i++ {
 		// encrypt text
-		ciphertext, err := dataEncrypt(reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle)
+		ciphertext, err := dataEncryptAEAD(reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +243,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 			Metadata:  reqParamsData[i].Metadata,
 		}
 
-		token, err := storeEncryptedData(dbTokenData, 1)
+		token, err := storeEncryptedData(dbTokenData)
 		if err != nil {
 			return nil, err
 		}
@@ -238,7 +251,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
 			encryption.ResponseData{
 				ID:    reqParamsData[i].ID,
-				Token: tokenmanager.FormatToken(*token),
+				Token: tokenmanager.FormatToken(token),
 			})
 
 	}
@@ -246,7 +259,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 	return &encryptionResponse, nil
 }
 
-func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
+func dataEncryptAEAD(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 	a, err := aead.New(kh)
 	if err != nil {
 		return nil, errormanager.SetError("Error encountered during AEAD wrapper generation.", err)
@@ -259,7 +272,7 @@ func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 
 	return ct, nil
 }
-func dataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
+func dataDecryptAEAD(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
 	a, err := aead.New(kh)
 	if err != nil {
 		return nil, errormanager.SetError("Error encountered while initializing AEAD handler.", err)
@@ -275,25 +288,27 @@ func dataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, er
 	return &plainText, nil
 }
 
-func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) {
-	dbTokenData.TokenID = tokenmanager.Uniquetoken()
-	err := database.PutItem(dbTokenData)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case dynamodb.ErrCodeConditionalCheckFailedException:
-				if attempt > 3 {
-					return nil, errormanager.SetError("Token ID clash exceeded attempt threshold.", err)
+func storeEncryptedData(dbTokenData db.TokenData) (string, error) {
+	attempts := 0
+	var err error
+
+	for attempts < 3 {
+		attempts++
+		dbTokenData.TokenID = tokenmanager.Uniquetoken()
+		err = database.PutItem(dbTokenData)
+		// handle token clashes for 3 attempts
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok {
+				switch aerr.Code() {
+				case dynamodb.ErrCodeConditionalCheckFailedException:
+					continue
 				}
-				attempt++
-				storeEncryptedData(dbTokenData, attempt)
-			default:
-				return nil, errormanager.SetError("Error encountered while storing token data.", err)
 			}
 		}
+		break
 	}
 
-	return &dbTokenData.TokenID, nil
+	return dbTokenData.TokenID, err
 }
 
 func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decryption.DecryptRequest) (*decryption.DecryptResponse, error) {
@@ -310,7 +325,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 		}
 
 		// decrypt with salt
-		decryptedText, err := dataDecrypt(dbTokenData.Content, reqParamsData[i].Salt, kh)
+		decryptedText, err := dataDecryptAEAD(dbTokenData.Content, reqParamsData[i].Salt, kh)
 		if err != nil {
 			return nil, err
 		}
