@@ -1,6 +1,7 @@
 package keysetmanager
 
 import (
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -21,13 +22,11 @@ func destringify(str string) (*strings.Reader, error) {
 	var keyset keysetmodel.EncryptedKeyset
 	s, err := strconv.Unquote(str)
 	if err != nil {
-		logging.GetLogger().Error("Error encountered in destrinify", zap.Error(err))
-		return nil, err
+		return nil, errormanager.SetError("Error encountered while destringifying keysets.", err)
 	}
 	err = json.Unmarshal([]byte(s), &keyset)
 	if err != nil {
-		logging.GetLogger().Error("Error encountered in Unmarshal", zap.Error(err))
-		return nil, err
+		return nil, errormanager.SetError("Error encountered while unmarshalling keysets.", err)
 	}
 	JSONKeyset, _ := json.Marshal(keyset)
 	myReader := strings.NewReader(string(JSONKeyset))
@@ -49,7 +48,6 @@ func loadKeyset() (map[string]*strings.Reader, error) {
 	for k, v := range m {
 		keysetmap[k], err = destringify(strconv.Quote(v))
 		if err != nil {
-			logging.GetLogger().Error("Error encountered while destringifying the keyset file.", zap.Error(err))
 			return nil, err
 		}
 	}
@@ -64,21 +62,18 @@ func decryptKeyset(keysetmap map[string]*strings.Reader) error {
 
 	kmsClient, err := awskms.NewClient(keyURI)
 	if err != nil {
-		logging.GetLogger().Error("Error encountered in initializing KMS client.", zap.Error(err))
-		return err
+		return errormanager.SetError("Error encountered in initializing KMS client.", err)
 	}
 	kmsAEAD, err := kmsClient.GetAEAD(keyURI)
 	if err != nil {
-		logging.GetLogger().Error("Error encountered in initializing KMS client.", zap.Error(err))
-		return err
+		return errormanager.SetError("Error encountered in initializing KMS AEAD client.", err)
 	}
 
 	for k, v := range keysetmap {
 		kh1 := keyset.NewJSONReader(v)
 		kh, err := keyset.Read(kh1, kmsAEAD)
 		if err != nil {
-			logging.GetLogger().Error("Error encountered in reading the keyset.", zap.Error(err))
-			return err
+			return errormanager.SetError("Error encountered in reading the AEAD keyset.", err)
 		}
 		decryptedKeysetMap[k] = kh
 	}
@@ -88,8 +83,7 @@ func decryptKeyset(keysetmap map[string]*strings.Reader) error {
 
 func getRandomizedKeyset() (*string, *keyset.Handle, error) {
 	if len(decryptedKeysetMap) == 0 {
-		err := errors.New("the keyset map is empty")
-		logging.GetLogger().Error("Error encountered in reading the keyset.", zap.Error(err))
+		err := errormanager.SetError("Error encountered in reading the keyset.", errors.New("the keyset map is empty"))
 		return nil, nil, err
 	}
 
@@ -155,8 +149,7 @@ func GetKeysetHandlerForDecryption(keysetName string) (*keyset.Handle, error) {
 	if kh, ok := decryptedKeysetMap[keysetName]; ok {
 		return kh, nil
 	}
-	err = errors.New("Something went wrong while processing your request")
-	logging.GetLogger().Error("Valid keyset not found for keyset name "+keysetName, zap.Error(err))
+	err = errormanager.SetError("Error encountered in fetching the keyset.", errors.New("Valid keyset not found for keyset name"+ keysetName))
 
 	return nil, err
 }

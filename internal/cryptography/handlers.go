@@ -251,14 +251,12 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 	a, err := aead.New(kh)
 	if err != nil {
-		logging.GetLogger().Error("Problem in AEAD wrapper generation", zap.Error(err))
-		return nil, err
+		return nil, errormanager.SetError("Error encountered during AEAD wrapper generation.", err)
 	}
 
 	ct, err := a.Encrypt([]byte(data), []byte(salt))
 	if err != nil {
-		logging.GetLogger().Error("Problem in Encryption", zap.Error(err))
-		return nil, err
+		return nil, errormanager.SetError("Error encountered during AEAD generation", err)
 	}
 
 	return ct, nil
@@ -266,14 +264,12 @@ func dataEncrypt(data string, salt string, kh *keyset.Handle) ([]byte, error) {
 func dataDecrypt(cipherText []byte, salt string, kh *keyset.Handle) (*string, error) {
 	a, err := aead.New(kh)
 	if err != nil {
-		logging.GetLogger().Error("Error encountered while initializing aead handler", zap.Error(err))
-		return nil, err
+		return nil, errormanager.SetError("Error encountered while initializing AEAD handler.", err)
 	}
 
 	pt, err := a.Decrypt(cipherText, []byte(salt))
 	if err != nil {
-		logging.GetLogger().Error("Error encountered while decrypting data", zap.Error(err))
-		return nil, err
+		return nil, errormanager.SetError("Error encountered while decrypting data with AEAD.", err)
 	}
 
 	plainText := string(pt)
@@ -288,15 +284,13 @@ func storeEncryptedData(dbTokenData db.TokenData, attempt int) (*string, error) 
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeConditionalCheckFailedException:
-				logging.GetLogger().Error("Token ID clash detected.", zap.Error(err))
 				if attempt > 3 {
-					logging.GetLogger().Error("Token ID clash exceeded attempt threshold.", zap.Error(err))
-					return nil, err
+					return nil, errormanager.SetError("Token ID clash exceeded attempt threshold.", err)
 				}
 				attempt++
 				storeEncryptedData(dbTokenData, attempt)
 			default:
-				return nil, err
+				return nil, errormanager.SetError("Error encountered while storing token data.", err)
 			}
 		}
 	}

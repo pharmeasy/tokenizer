@@ -66,3 +66,8 @@ func SetValidationEmptyError(value string) error {
 func SetValidationDecodeError(requestType string, err error) error {
 	return errors.New("Unable to decode " + requestType + " request params." + err.Error())
 }
+
+// SetError Sets error based on error context
+func SetError(errorContext string, err error) error {
+	return errors.New(errorContext + err.Error())
+}
