@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
@@ -69,36 +68,37 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// validate request params
 	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusBadRequest,
+			errormanager.SetDecryptionError(requestParams, err, http.StatusBadRequest))
 		return
 	}
 
 	// validate identifier
-	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
+	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
+	if !isAuthenticated {
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
 	}
 
 	// fetch records
 	tokenData, err := getTokenData(requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while fetching token data."))
-		return
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
+			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
 	}
 
 	// authorize token access
-	isAuthorized = identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)
+	isAuthorized := identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)
 	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
 	}
 
 	// decrypt data
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while decrypting token data."))
-		return
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
+			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
 	}
 
 	render.JSON(w, req, decryptedData)
@@ -110,29 +110,29 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	// validate request params
 	requestParams, err := validator.ValidateMetadataRequest(req)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
-		return
+		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusBadRequest,
+			errormanager.SetMetadataError(requestParams, err, http.StatusBadRequest))
 	}
 
 	// validate access
-	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
+	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
+	if !isAuthenticated {
+		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetMetadataError(requestParams, nil, http.StatusForbidden))
 	}
 
 	// fetch records
 	tokenData, err := database.GetItemsByToken(requestParams.Tokens)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
-		return
+		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusInternalServerError,
+			errormanager.SetMetadataError(requestParams, err, http.StatusInternalServerError))
 	}
 
 	// authorize token access
-	isAuthorized = identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
+	isAuthorized := identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
 	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
+		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetMetadataError(requestParams, nil, http.StatusForbidden))
 	}
 
 	// return metadata
@@ -145,15 +145,15 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	// validate request params
 	requestParams, err := validator.ValidateMetadataUpdateRequest(req)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
-		return
+		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusBadRequest,
+			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusBadRequest))
 	}
 
 	// validate access
-	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
+	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
+	if !isAuthenticated {
+		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetUpdateMetadataError(requestParams, nil, http.StatusForbidden))
 	}
 
 	// fetch records
@@ -166,22 +166,22 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 
 	tokenData, err := database.GetItemsByToken(tokenIDs)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "Error encountered while fetching token data."))
-		return
+		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
+			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
 	}
 
 	// authorize token access
-	isAuthorized = identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
+	isAuthorized := identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
 	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
-		return
+		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetUpdateMetadataError(requestParams, nil, http.StatusForbidden))
 	}
 
 	// update metadata
 	err = updateMetaItems(requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while updating metadata."+err.Error()))
-		return
+		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
+			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
 	}
 
 	render.JSON(w, req, "Metadata updated successfully.")

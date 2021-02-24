@@ -9,7 +9,9 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/badresponse"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 )
 
 var genericBadRequestError error
@@ -70,4 +72,65 @@ func SetValidationDecodeError(requestType string, err error) error {
 // SetError Sets error based on error context
 func SetError(errorContext string, err error) error {
 	return errors.New(errorContext + err.Error())
+}
+
+// RenderDecryptionErrorResponse renders decryption error response
+func RenderDecryptionErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
+}
+
+//SetDecryptionError logs non sensitive encryption data and returns a generic error
+func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, status uint) error {
+	genericError := getGenericErrorByStatus(status)
+	if requestParams != nil {
+		for i := 0; i < len(requestParams.DecryptRequestData); i++ {
+			requestParams.DecryptRequestData[i].Salt = ""
+			requestParams.DecryptRequestData[i].Token = ""
+		}
+		logging.GetLogger().Error(genericError.Error(), zap.Error(err), zap.Any("decryptionRequest", &requestParams))
+		return genericError
+	}
+	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
+	return genericError
+}
+
+// RenderGetMetadataErrorResponse renders get metadata by tokens error response
+func RenderGetMetadataErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
+}
+
+// SetMetadataError logs non sensitive metadata related information and returns a generic error
+func SetMetadataError(requestParams *metadata.MetaRequest, err error, status uint) error {
+	genericError := getGenericErrorByStatus(status)
+	if requestParams != nil {
+		for i := 0; i < len(requestParams.Tokens); i++ {
+			requestParams.Tokens[i] = ""
+		}
+		logging.GetLogger().Error(genericError.Error(), zap.Error(err), zap.Any("getmetadataRequest", &requestParams))
+		return genericError
+	}
+	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
+	return genericError
+}
+
+// RenderUpdateMetadataErrorResponse renders updatemetadata error response
+func RenderUpdateMetadataErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), badresponse.ExceptionResponse(status, err.Error()))
+}
+
+// SetUpdateMetadataError logs non sensitive updatemetadata related information and returns a generic error
+func SetUpdateMetadataError(requestParams *metadata.MetaUpdateRequest, err error, status uint) error {
+	genericError := getGenericErrorByStatus(status)
+	if requestParams != nil {
+		for i := 0; i < len(requestParams.UpdateParams); i++ {
+			requestParams.UpdateParams[i].Metadata = ""
+			requestParams.UpdateParams[i].Token = ""
+		}
+
+		logging.GetLogger().Error(genericError.Error(), zap.Error(err), zap.Any("updatemetaRequest", &requestParams))
+		return genericError
+
+	}
+	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
+	return genericError
 }
