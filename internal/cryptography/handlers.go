@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 
-	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
@@ -22,7 +21,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
-	"go.uber.org/zap"
 )
 
 func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {

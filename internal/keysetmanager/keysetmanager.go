@@ -1,18 +1,16 @@
 package keysetmanager
 
 import (
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
 	"time"
 
-	"bitbucket.org/pharmaeasyteam/goframework/logging"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keyset"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
+	keysetmodel "bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keyset"
 	"github.com/google/tink/go/integration/awskms"
 	"github.com/google/tink/go/keyset"
-	"go.uber.org/zap"
 )
 
 // DecryptedKeysetMap stores the keys in memory
@@ -149,7 +147,7 @@ func GetKeysetHandlerForDecryption(keysetName string) (*keyset.Handle, error) {
 	if kh, ok := decryptedKeysetMap[keysetName]; ok {
 		return kh, nil
 	}
-	err = errormanager.SetError("Error encountered in fetching the keyset.", errors.New("Valid keyset not found for keyset name"+ keysetName))
+	err = errormanager.SetError("Error encountered in fetching the keyset.", errors.New("Valid keyset not found for keyset name"+keysetName))
 
 	return nil, err
 }
