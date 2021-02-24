@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
+
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
@@ -32,28 +34,32 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	// get parsed data
 	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusBadRequest, badresponse.ExceptionResponse(http.StatusBadRequest, err.Error()))
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusBadRequest,
+			errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest))
 		return
 	}
 
 	// validate identifier
-	isAuthorized := identity.AuthenticateRequest(requestParams.Identifier)
-	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
+	if !isAuthenticated {
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden))
 		return
 	}
 
 	// authorize encryption levels
-	isAuthorized = identity.AuthorizeLevelForEncryption(requestParams)
+	isAuthorized := identity.AuthorizeLevelForEncryption(requestParams)
 	if !isAuthorized {
-		render.JSONWithStatus(w, req, http.StatusForbidden, badresponse.ExceptionResponse(http.StatusForbidden, "You are forbidden to perform this action"))
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden))
 		return
 	}
 
 	// encrypt data
 	encryptedData, err := encryptTokenData(requestParams)
 	if err != nil {
-		render.JSONWithStatus(w, req, http.StatusInternalServerError, badresponse.ExceptionResponse(http.StatusInternalServerError, "Error encountered while encrypting token data."))
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusInternalServerError,
+			errormanager.SetEncryptionError(requestParams, err, http.StatusInternalServerError))
 		return
 	}
 
