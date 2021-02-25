@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var instanceID string
+
 // Uniquetoken generates a unique token for the request
 func Uniquetoken() string {
 	return uuid.New().String()
@@ -14,8 +16,12 @@ func Uniquetoken() string {
 // FormatToken formats the token response
 func FormatToken(token string) string {
 	tokenformat := "token://%s/%s"
-	instanceID := "A1"
 	formattedToken := fmt.Sprintf(tokenformat, instanceID, token)
 
 	return formattedToken
+}
+
+// LoadInstanceIDFromEnv loads instance id from env
+func LoadInstanceIDFromEnv(str string) {
+	instanceID = str
 }

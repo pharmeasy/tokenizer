@@ -16,7 +16,7 @@ var dbSession *dynamodb.DynamoDB
 var tableName string
 
 // GetSession creates a session if not present
-func GetSession() {
+func GetSession(dynamoTableName string) {
 	if dbSession == nil {
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
@@ -26,13 +26,8 @@ func GetSession() {
 	}
 
 	if tableName == "" {
-		getTableName()
+		tableName = dynamoTableName
 	}
-}
-
-// GetTableName gets the table name
-func getTableName() {
-	tableName = "staging_tokens"
 }
 
 // GetItemsByToken Gets the token record from the db

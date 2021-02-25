@@ -15,6 +15,8 @@ import (
 
 // DecryptedKeysetMap stores the keys in memory
 var decryptedKeysetMap = make(map[string]*keyset.Handle)
+var keysetMapFromEnv = make(map[string]string)
+var kmsARN string
 
 func destringify(str string) (*strings.Reader, error) {
 	var keyset keysetmodel.EncryptedKeyset
@@ -33,17 +35,10 @@ func destringify(str string) (*strings.Reader, error) {
 }
 
 func loadKeyset() (map[string]*strings.Reader, error) {
-
-	m := make(map[string]string)
-	m["ks1-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-	m["ks2-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-	m["ks3-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-	m["ks4-1"] = "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
-
 	keysetmap := make(map[string]*strings.Reader)
 	var err error
 
-	for k, v := range m {
+	for k, v := range keysetMapFromEnv {
 		keysetmap[k], err = destringify(strconv.Quote(v))
 		if err != nil {
 			return nil, err
@@ -56,13 +51,11 @@ func loadKeyset() (map[string]*strings.Reader, error) {
 // DecryptKeyset decrypts the keyset and stores in memory
 func decryptKeyset(keysetmap map[string]*strings.Reader) error {
 
-	keyURI := "aws-kms://arn:aws:kms:ap-south-1:127603365779:key/8d853831-94e6-4ac7-a0c7-3e2795e9715b"
-
-	kmsClient, err := awskms.NewClient(keyURI)
+	kmsClient, err := awskms.NewClient(kmsARN)
 	if err != nil {
 		return errormanager.SetError("Error encountered in initializing KMS client.", err)
 	}
-	kmsAEAD, err := kmsClient.GetAEAD(keyURI)
+	kmsAEAD, err := kmsClient.GetAEAD(kmsARN)
 	if err != nil {
 		return errormanager.SetError("Error encountered in initializing KMS AEAD client.", err)
 	}
@@ -150,4 +143,14 @@ func GetKeysetHandlerForDecryption(keysetName string) (*keyset.Handle, error) {
 	err = errormanager.SetError("Error encountered in fetching the keyset.", errors.New("Valid keyset not found for keyset name"+keysetName))
 
 	return nil, err
+}
+
+// LoadKeysetFromEnv loads keyset from env
+func LoadKeysetFromEnv(keyMap map[string]string) {
+	keysetMapFromEnv = keyMap
+}
+
+//LoadArnFromEnv loads kms arn from env
+func LoadArnFromEnv(str string) {
+	kmsARN = str
 }
