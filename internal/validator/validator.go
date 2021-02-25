@@ -3,6 +3,7 @@ package validator
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
@@ -28,7 +29,8 @@ func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 	}
 
 	for _, v := range params.EncryptRequestData {
-		if v.Level == "" {
+		level, _ := strconv.Atoi(v.Level)
+		if v.Level == "" || level < 1 || level > 7 {
 			return &params, errormanager.SetValidationEmptyError("Level")
 		}
 

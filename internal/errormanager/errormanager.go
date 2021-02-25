@@ -56,7 +56,7 @@ func SetEncryptionError(requestParams *encryption.EncryptRequest, err error, sta
 
 // SetValidationEmptyError sets an empty error
 func SetValidationEmptyError(value string) error {
-	return errors.New(value + " is blank")
+	return errors.New(value + " is blank or not in range")
 }
 
 // SetValidationDecodeError sets errors in decoding
