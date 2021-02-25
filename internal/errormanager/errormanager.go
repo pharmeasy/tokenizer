@@ -2,6 +2,7 @@ package errormanager
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
@@ -56,12 +57,12 @@ func SetEncryptionError(requestParams *encryption.EncryptRequest, err error, sta
 
 // SetValidationEmptyError sets an empty error
 func SetValidationEmptyError(value string) error {
-	return errors.New(value + " is blank or not in range")
+	return errors.New(fmt.Sprintf("%s is blank or not in range", value))
 }
 
 // SetValidationDecodeError sets errors in decoding
 func SetValidationDecodeError(requestType string, err error) error {
-	return errors.New("Unable to decode " + requestType + " request params." + err.Error())
+	return errors.New(fmt.Sprintf("Unable to decode %s request params. %s", requestType, err.Error()))
 }
 
 // SetError Sets error based on error context
@@ -69,7 +70,7 @@ func SetError(errorContext string, err error) error {
 	if err == nil {
 		return errors.New(errorContext)
 	}
-	return errors.New(errorContext + err.Error())
+	return errors.New(fmt.Sprintf("%s %s", errorContext, err.Error()))
 }
 
 // RenderEncryptionErrorResponse renders encryption error response
