@@ -3,6 +3,7 @@ package cryptography
 import (
 	"context"
 
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 
 	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
@@ -22,4 +23,5 @@ func New(worldconfig config.TokenizerConfig) *ModuleCrypto {
 // Init ...
 func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 	errormanager.SetGenericErrors()
+	database.GetSession()
 }

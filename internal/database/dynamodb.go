@@ -16,7 +16,7 @@ var dbSession *dynamodb.DynamoDB
 var tableName string
 
 // GetSession creates a session if not present
-func getSession() {
+func GetSession() {
 	if dbSession == nil {
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
@@ -37,7 +37,6 @@ func getTableName() {
 
 // GetItemsByToken Gets the token record from the db
 func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
-	getSession()
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
 	for _, tokenID := range tokenIDs {
@@ -75,7 +74,6 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 
 // PutItem stores the record in the db
 func PutItem(item db.TokenData) error {
-	getSession()
 
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
@@ -98,7 +96,6 @@ func PutItem(item db.TokenData) error {
 
 // UpdateMetadataByToken updated attributes in the existing record
 func UpdateMetadataByToken(tokenID string, metadata string) error {
-	getSession()
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
