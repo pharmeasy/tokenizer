@@ -21,7 +21,7 @@ func FormatToken(token string) string {
 	return formattedToken
 }
 
-// LoadInstanceIDFromEnv loads instance id from env
-func LoadInstanceIDFromEnv(str string) {
+// LoadInstanceIDFromConfig loads instance id from env
+func LoadInstanceIDFromConfig(str string) {
 	instanceID = str
 }

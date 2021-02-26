@@ -13,6 +13,7 @@ import (
 
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request
 func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, error) {
+	set := make(map[string]bool)
 	decoder := json.NewDecoder(req.Body)
 	params := encryption.EncryptRequest{}
 	err := decoder.Decode(&params)
@@ -36,6 +37,16 @@ func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 
 		if v.Content == "" {
 			return &params, errormanager.SetValidationEmptyError("Content")
+		}
+
+		if v.ID == "" {
+			return &params, errormanager.SetValidationEmptyError("ID")
+		}
+
+		if !set[v.ID] {
+			set[v.ID] = true
+		} else {
+			return &params, errormanager.SetValidationEmptyError("ID may be repeated or")
 		}
 	}
 

@@ -145,12 +145,12 @@ func GetKeysetHandlerForDecryption(keysetName string) (*keyset.Handle, error) {
 	return nil, err
 }
 
-// LoadKeysetFromEnv loads keyset from env
-func LoadKeysetFromEnv(keyMap map[string]string) {
+// LoadKeysetFromConfig loads keyset from env
+func LoadKeysetFromConfig(keyMap map[string]string) {
 	keysetMapFromEnv = keyMap
 }
 
-//LoadArnFromEnv loads kms arn from env
-func LoadArnFromEnv(str string) {
+//LoadArnFromConfig loads kms arn from env
+func LoadArnFromConfig(str string) {
 	kmsARN = str
 }

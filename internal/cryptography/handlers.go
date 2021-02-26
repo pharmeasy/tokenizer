@@ -234,6 +234,11 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 			return nil, err
 		}
 
+		integrityChecker := integrityChecker(ciphertext, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle)
+		if !integrityChecker {
+			return nil, errormanager.SetError("data integrity compromised", nil)
+		}
+
 		dbTokenData := db.TokenData{
 			Level:     reqParamsData[i].Level,
 			Content:   ciphertext,
@@ -367,4 +372,12 @@ func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
 	}
 
 	return &metaResponse
+}
+
+func integrityChecker(cipherText []byte, plainText string, salt string, kh *keyset.Handle) bool {
+	pt, _ := dataDecryptAEAD(cipherText, salt, kh)
+	if *pt == plainText {
+		return true
+	}
+	return false
 }
