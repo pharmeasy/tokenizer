@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 )
 
 var dbSession *dynamodb.DynamoDB
@@ -29,6 +31,82 @@ func GetSession(dynamoTableName string) {
 		tableName = dynamoTableName
 	}
 }
+
+// GetItemsByTokenInBatch
+
+func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error){
+	itemsByTokenIDs := make(map[string]db.TokenData)
+
+	tokenLength := len(tokenIDs)
+	var filterArray[] map[string]*dynamodb.AttributeValue
+
+	for i:=0;i<tokenLength;i++{
+		filterArray = append(filterArray, map[string]*dynamodb.AttributeValue{
+			"tokenId": {
+			   S: aws.String(tokenIDs[i]),
+			},
+		
+		})
+	}
+    
+    input := &dynamodb.BatchGetItemInput{
+		RequestItems: map[string]*dynamodb.KeysAndAttributes{
+			tableName : {
+				Keys: filterArray,
+			},
+		},
+	}
+	fmt.Println("input=>",input)
+
+	result, err := dbSession.BatchGetItem(input)
+	fmt.Println("error=>",err)
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				fmt.Println(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				fmt.Println(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeRequestLimitExceeded:
+				fmt.Println(dynamodb.ErrCodeRequestLimitExceeded, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				fmt.Println(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				fmt.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+		}
+		
+	}
+
+	dataList := result.Responses[tableName]
+	resultLen := len(dataList)
+
+	for i:=0;i<resultLen;i++{
+
+		item := db.TokenData{}
+
+		err = dynamodbattribute.UnmarshalMap(dataList[i], &item)
+		if err != nil {
+			return nil, errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record"), err)
+		}
+
+		itemsByTokenIDs[item.TokenID] = item
+	}
+
+	fmt.Println(result)
+
+    return itemsByTokenIDs, nil
+
+
+
+}
+
+
 
 // GetItemsByToken Gets the token record from the db
 func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
