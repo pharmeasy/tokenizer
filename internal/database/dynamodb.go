@@ -80,6 +80,8 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 			// Message from an error.
 			fmt.Println(err.Error())
 		}
+		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item for tokenID"), err)
+
 		
 	}
 
@@ -97,6 +99,11 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 
 		itemsByTokenIDs[item.TokenID] = item
 	}
+
+	if len(dataList) != len(filterArray) {
+		return nil, errormanager.SetError(fmt.Sprintf("All DynamoDB Item not found"), nil)
+	}
+
 
 	fmt.Println(result)
 
