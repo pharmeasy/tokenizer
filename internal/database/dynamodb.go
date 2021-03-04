@@ -90,12 +90,16 @@ func PutItem(item db.TokenData) error {
 }
 
 // UpdateMetadataByToken updated attributes in the existing record
-func UpdateMetadataByToken(tokenID string, metadata string) error {
+func UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt string) error {
 
+	meta, _ := dynamodbattribute.MarshalMap(metadata)
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":m": {
-				S: aws.String(metadata),
+			":metadata": {
+				M: meta,
+			},
+			":updatedAt": {
+				S: aws.String(updatedAt),
 			},
 		},
 		TableName: aws.String(tableName),
@@ -105,7 +109,7 @@ func UpdateMetadataByToken(tokenID string, metadata string) error {
 			},
 		},
 		ReturnValues:        aws.String("UPDATED_NEW"),
-		UpdateExpression:    aws.String("set Metadata = :m"),
+		UpdateExpression:    aws.String("set Metadata1 = :metadata, UpdatedAt = :updatedAt"),
 		ConditionExpression: aws.String("attribute_not_exists(tokenID)"),
 	}
 
@@ -113,6 +117,7 @@ func UpdateMetadataByToken(tokenID string, metadata string) error {
 	if err != nil {
 		return errormanager.SetError(fmt.Sprintf("Failed to execute DynamoDB UpdateItem for tokenID %s", tokenID), err)
 	}
+	//	}
 
 	return nil
 }

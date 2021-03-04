@@ -127,7 +127,7 @@ func ValidateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 			return &params, errormanager.SetValidationEmptyError("Token")
 		}
 
-		if params.UpdateParams[i].Metadata == "" {
+		if len(params.UpdateParams[i].Metadata1) == 0 {
 			return &params, errormanager.SetValidationEmptyError("Metadata")
 		}
 	}

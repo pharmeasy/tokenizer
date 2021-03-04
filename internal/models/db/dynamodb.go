@@ -8,5 +8,5 @@ type TokenData struct {
 	CreatedAt string
 	UpdatedAt string
 	Key       string
-	Metadata  string
+	Metadata1 map[string]string
 }

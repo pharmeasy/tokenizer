@@ -7,9 +7,9 @@ type DecryptResponse struct {
 
 // DecryptResponseData is the struct for object
 type DecryptResponseData struct {
-	Token    string `json:"token"`
-	Content  string `json:"content"`
-	Metadata string `json:"metadata"`
+	Token     string            `json:"token"`
+	Content   string            `json:"content"`
+	Metadata1 map[string]string `json:"metadata"`
 }
 
 // DecryptRequest represents the successful decryption request

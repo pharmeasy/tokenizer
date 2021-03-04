@@ -20,9 +20,9 @@ type EncryptRequest struct {
 
 // EncryptRequestData represents the data field in the incoming encryption request
 type EncryptRequestData struct {
-	ID       string `json:"id"`
-	Level    string `json:"level"`
-	Content  string `json:"content"`
-	Salt     string `json:"salt"`
-	Metadata string `json:"metadata"`
+	ID       string            `json:"id"`
+	Level    string            `json:"level"`
+	Content  string            `json:"content"`
+	Salt     string            `json:"salt"`
+	Metadata map[string]string `json:"metadata"`
 }

@@ -189,8 +189,8 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	// update metadata
-	err = updateMetaItems(requestParams)
+	//update metadata
+	err = updateMetaItems(requestParams, tokenData)
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
@@ -245,7 +245,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 			CreatedAt: time.Now().Format(time.RFC3339),
 			UpdatedAt: time.Now().Format(time.RFC3339),
 			Key:       *keyName,
-			Metadata:  reqParamsData[i].Metadata,
+			Metadata1: reqParamsData[i].Metadata,
 		}
 
 		token, err := storeEncryptedData(dbTokenData)
@@ -337,21 +337,26 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 
 		decryptionResponse.DecryptionResponseData = append(decryptionResponse.DecryptionResponseData,
 			decryption.DecryptResponseData{
-				Token:    tokenmanager.FormatToken(token),
-				Content:  *decryptedText,
-				Metadata: dbTokenData.Metadata,
+				Token:     tokenmanager.FormatToken(token),
+				Content:   *decryptedText,
+				Metadata1: dbTokenData.Metadata1,
 			})
 	}
 
 	return &decryptionResponse, nil
 }
 
-func updateMetaItems(requestParams *metadata.MetaUpdateRequest) error {
+func updateMetaItems(requestParams *metadata.MetaUpdateRequest, tokenData map[string]db.TokenData) error {
 
-	payloadSize := len(requestParams.UpdateParams)
-	for i := 0; i < payloadSize; i++ {
+	for _, v := range requestParams.UpdateParams {
+		meta := tokenData[v.Token]
+		meta.Metadata1 = v.Metadata1
+		meta.UpdatedAt = time.Now().Format(time.RFC3339)
+		tokenData[v.Token] = meta
+	}
 
-		err := database.UpdateMetadataByToken(requestParams.UpdateParams[i].Token, requestParams.UpdateParams[i].Metadata)
+	for k, v := range tokenData {
+		err := database.UpdateMetadataByToken(k, v.Metadata1, v.UpdatedAt)
 		if err != nil {
 			return err
 		}
@@ -366,8 +371,8 @@ func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
 	for _, dbTokenData := range tokenData {
 		metaResponse.MetaParams = append(metaResponse.MetaParams,
 			metadata.MetaParams{
-				Token:    tokenmanager.FormatToken(dbTokenData.TokenID),
-				Metadata: dbTokenData.Metadata,
+				Token:     tokenmanager.FormatToken(dbTokenData.TokenID),
+				Metadata1: dbTokenData.Metadata1,
 			})
 	}
 
