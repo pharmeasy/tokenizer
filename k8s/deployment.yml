@@ -50,7 +50,7 @@ spec:
           readinessProbe:
             failureThreshold: 20
             httpGet:
-              path: /status
+              path: /admin/healthcheck
               port: 8083
               scheme: HTTP
             initialDelaySeconds: 20
@@ -60,7 +60,7 @@ spec:
           livenessProbe:
             failureThreshold: 5
             httpGet:
-              path: /status
+              path: /admin/healthcheck
               port: 8083
               scheme: HTTP
             initialDelaySeconds: 20
