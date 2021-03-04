@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+
 )
 
 var dbSession *dynamodb.DynamoDB
@@ -29,6 +30,66 @@ func GetSession(dynamoTableName string) {
 		tableName = dynamoTableName
 	}
 }
+
+// GetItemsByTokenInBatch
+
+func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error){
+	itemsByTokenIDs := make(map[string]db.TokenData)
+
+	tokenLength := len(tokenIDs)
+	var filterArray[] map[string]*dynamodb.AttributeValue
+
+	for i:=0;i<tokenLength;i++{
+		filterArray = append(filterArray, map[string]*dynamodb.AttributeValue{
+			"tokenId": {
+			   S: aws.String(tokenIDs[i]),
+			},
+		
+		})
+	}
+    
+    input := &dynamodb.BatchGetItemInput{
+		RequestItems: map[string]*dynamodb.KeysAndAttributes{
+			tableName : {
+				Keys: filterArray,
+			},
+		},
+	}
+
+	result, err := dbSession.BatchGetItem(input)
+
+	if err != nil {
+		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item"), err)	
+	}
+
+	dataList := result.Responses[tableName]
+	resultLen := len(dataList)
+
+	for i:=0;i<resultLen;i++{
+
+		item := db.TokenData{}
+
+		err = dynamodbattribute.UnmarshalMap(dataList[i], &item)
+		if err != nil {
+			return nil, errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record"), err)
+		}
+
+		itemsByTokenIDs[item.TokenID] = item
+	}
+
+	if len(dataList) != len(filterArray) {
+		return nil, errormanager.SetError(fmt.Sprintf("All DynamoDB Item not found"), nil)
+	}
+
+
+
+    return itemsByTokenIDs, nil
+
+
+
+}
+
+
 
 // GetItemsByToken Gets the token record from the db
 func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
