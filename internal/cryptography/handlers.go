@@ -3,7 +3,6 @@ package cryptography
 import (
 	"net/http"
 	"time"
-    "fmt"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
@@ -79,7 +78,6 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
 		return
 	}
-    fmt.Println("before fetching")
 	// fetch records
 	tokenData, err := getTokenData(requestParams)
 	if err != nil {
@@ -87,7 +85,6 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
 		return
 	}
-    fmt.Println(tokenData)
 
 	// authorize token access
 	isAuthorized := identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)

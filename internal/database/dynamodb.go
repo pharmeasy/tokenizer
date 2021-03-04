@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 
 )
 
@@ -56,33 +55,11 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 			},
 		},
 	}
-	fmt.Println("input=>",input)
 
 	result, err := dbSession.BatchGetItem(input)
-	fmt.Println("error=>",err)
 
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				fmt.Println(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
-			case dynamodb.ErrCodeResourceNotFoundException:
-				fmt.Println(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
-			case dynamodb.ErrCodeRequestLimitExceeded:
-				fmt.Println(dynamodb.ErrCodeRequestLimitExceeded, aerr.Error())
-			case dynamodb.ErrCodeInternalServerError:
-				fmt.Println(dynamodb.ErrCodeInternalServerError, aerr.Error())
-			default:
-				fmt.Println(aerr.Error())
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			fmt.Println(err.Error())
-		}
-		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item for tokenID"), err)
-
-		
+		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item"), err)	
 	}
 
 	dataList := result.Responses[tableName]
@@ -105,7 +82,6 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 	}
 
 
-	fmt.Println(result)
 
     return itemsByTokenIDs, nil
 
