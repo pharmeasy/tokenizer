@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
@@ -51,7 +50,7 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// encrypt data
-	encryptedData, err := encryptTokenData(requestParams)
+	encryptedData, err := encryptTokenData(requestParams, c)
 	if err != nil {
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetEncryptionError(requestParams, err, http.StatusInternalServerError))
@@ -79,7 +78,7 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// fetch records
-	tokenData, err := getTokenData(requestParams)
+	tokenData, err := getTokenData(requestParams, c)
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
@@ -125,7 +124,9 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// fetch records
-	tokenData, err := database.GetItemsByToken(requestParams.Tokens)
+	//tokenData, err := database.GetItemsByToken(requestParams.Tokens)
+	dbInterface := c.database
+	tokenData, err := dbInterface.GetItemsByTokenInBatch(requestParams.Tokens)
 	if err != nil {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetMetadataError(requestParams, err, http.StatusInternalServerError))
@@ -172,7 +173,9 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 		tokenIDs[i] = requestParams.UpdateParams[i].Token
 	}
 
-	tokenData, err := database.GetItemsByToken(tokenIDs)
+	//tokenData, err := database.GetItemsByToken(tokenIDs)
+	dbInterface := c.database
+	tokenData, err := dbInterface.GetItemsByTokenInBatch(tokenIDs)
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
@@ -188,7 +191,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	}
 
 	//update metadata
-	err = updateMetaItems(requestParams, tokenData)
+	err = updateMetaItems(requestParams, tokenData, c)
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
@@ -198,7 +201,7 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	render.JSON(w, req, "Metadata updated successfully.")
 }
 
-func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.TokenData, error) {
+func getTokenData(requestParams *decryption.DecryptRequest, c *ModuleCrypto) (*map[string]db.TokenData, error) {
 
 	payloadSize := len(requestParams.DecryptRequestData)
 	tokenIDs := make([]string, payloadSize)
@@ -208,7 +211,8 @@ func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.Toke
 	}
 
 	//tokenData, err := database.GetItemsByToken(tokenIDs)
-	tokenData, err := database.GetItemsByTokenInBatch(tokenIDs)
+	dbInterface := c.database
+	tokenData, err := dbInterface.GetItemsByTokenInBatch(tokenIDs)
 	
 	if err != nil {
 		return nil, err
@@ -217,7 +221,7 @@ func getTokenData(requestParams *decryption.DecryptRequest) (*map[string]db.Toke
 	return &tokenData, nil
 }
 
-func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.EncryptResponse, error) {
+func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto) (*encryption.EncryptResponse, error) {
 	encryptionResponse := encryption.EncryptResponse{}
 	reqParamsData := requestParams.EncryptRequestData
 
@@ -248,7 +252,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest) (*encryption.Enc
 			Metadata1: reqParamsData[i].Metadata,
 		}
 
-		token, err := storeEncryptedData(dbTokenData)
+		token, err := storeEncryptedData(dbTokenData, c)
 		if err != nil {
 			return nil, err
 		}
@@ -293,14 +297,14 @@ func dataDecryptAEAD(cipherText []byte, salt string, kh *keyset.Handle) (*string
 	return &plainText, nil
 }
 
-func storeEncryptedData(dbTokenData db.TokenData) (string, error) {
+func storeEncryptedData(dbTokenData db.TokenData, c *ModuleCrypto) (string, error) {
 	attempts := 0
 	var err error
-
+    dbInterface := c.database
 	for attempts < 3 {
 		attempts++
 		dbTokenData.TokenID = tokenmanager.Uniquetoken()
-		err = database.PutItem(dbTokenData)
+		err = dbInterface.PutItem(dbTokenData)
 		// handle token clashes for 3 attempts
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok {
@@ -346,7 +350,7 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 	return &decryptionResponse, nil
 }
 
-func updateMetaItems(requestParams *metadata.MetaUpdateRequest, tokenData map[string]db.TokenData) error {
+func updateMetaItems(requestParams *metadata.MetaUpdateRequest, tokenData map[string]db.TokenData, c *ModuleCrypto) error {
 
 	for _, v := range requestParams.UpdateParams {
 		meta := tokenData[v.Token]
@@ -354,9 +358,9 @@ func updateMetaItems(requestParams *metadata.MetaUpdateRequest, tokenData map[st
 		meta.UpdatedAt = time.Now().Format(time.RFC3339)
 		tokenData[v.Token] = meta
 	}
-
+    dbInterface := c.database
 	for k, v := range tokenData {
-		err := database.UpdateMetadataByToken(k, v.Metadata1, v.UpdatedAt)
+		err := dbInterface.UpdateMetadataByToken(k, v.Metadata1, v.UpdatedAt)
 		if err != nil {
 			return err
 		}

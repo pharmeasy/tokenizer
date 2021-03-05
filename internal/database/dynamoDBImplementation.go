@@ -13,11 +13,14 @@ import (
 
 )
 
-var dbSession *dynamodb.DynamoDB
-var tableName string
+/*Interface implementation*/
+type DynamoDbObject struct{
+
+}
+
 
 // GetSession creates a session if not present
-func GetSession(dynamoTableName string) {
+func (d *DynamoDbObject) GetSession(dynamoTableName string) {
 	if dbSession == nil {
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
@@ -35,7 +38,7 @@ func GetSession(dynamoTableName string) {
 
 // GetItemsByTokenInBatch
 
-func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error){
+func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error){
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
 	tokenLength := len(tokenIDs)
@@ -94,7 +97,7 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 
 
 // GetItemsByToken Gets the token record from the db
-func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
+func (d *DynamoDbObject) GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
 	for _, tokenID := range tokenIDs {
@@ -131,7 +134,7 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 }
 
 // PutItem stores the record in the db
-func PutItem(item db.TokenData) error {
+func (d *DynamoDbObject) PutItem(item db.TokenData) error {
 
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
@@ -153,7 +156,7 @@ func PutItem(item db.TokenData) error {
 }
 
 // UpdateMetadataByToken updated attributes in the existing record
-func UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt string) error {
+func (d *DynamoDbObject) UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt string) error {
 
 	meta, _ := dynamodbattribute.MarshalMap(metadata)
 	input := &dynamodb.UpdateItemInput{

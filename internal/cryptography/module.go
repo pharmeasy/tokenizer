@@ -15,17 +15,19 @@ import (
 //ModuleCrypto ...
 type ModuleCrypto struct {
 	config *config.TokenizerConfig
+	database *database.DynamoDbObject
 }
 
 //New ...
 func New(worldconfig config.TokenizerConfig) *ModuleCrypto {
-	return &ModuleCrypto{config: &worldconfig}
+	db := database.DynamoDbObject{}
+	return &ModuleCrypto{config: &worldconfig, database: &db}
 }
 
 // Init ...
 func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 	errormanager.SetGenericErrors()
-	database.GetSession(ms.config.VaultModule.DynamoConfig.DynamoDBTableName)
+	ms.database.GetSession(ms.config.VaultModule.DynamoConfig.DynamoDBTableName)
 	keysetmanager.LoadArnFromConfig(ms.config.VaultModule.KMSConfig.AWSKMSKey)
 	keysetmanager.LoadKeysetFromConfig(map[string]string{
 		ms.config.VaultModule.KeysetConfig.KeysetName1: ms.config.VaultModule.KeysetConfig.KeysetValue1,
