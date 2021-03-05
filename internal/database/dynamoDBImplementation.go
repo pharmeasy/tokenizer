@@ -15,7 +15,13 @@ import (
 
 /*Interface implementation*/
 type DynamoDbObject struct{
+    TableName string
+}
 
+func GetDynamoDbObject(tableName string) *DynamoDbObject{
+     newDynamoObject := DynamoDbObject{TableName : tableName}
+
+	 return &newDynamoObject
 }
 
 

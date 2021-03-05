@@ -20,14 +20,14 @@ type ModuleCrypto struct {
 
 //New ...
 func New(worldconfig config.TokenizerConfig) *ModuleCrypto {
-	db := database.DynamoDbObject{}
-	return &ModuleCrypto{config: &worldconfig, database: &db}
+	return &ModuleCrypto{config: &worldconfig}
 }
 
 // Init ...
 func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 	errormanager.SetGenericErrors()
-	ms.database.GetSession(ms.config.VaultModule.DynamoConfig.DynamoDBTableName)
+	ms.database = database.GetDynamoDbObject(ms.config.VaultModule.DynamoConfig.DynamoDBTableName)
+	ms.database.GetSession(ms.database.TableName)
 	keysetmanager.LoadArnFromConfig(ms.config.VaultModule.KMSConfig.AWSKMSKey)
 	keysetmanager.LoadKeysetFromConfig(map[string]string{
 		ms.config.VaultModule.KeysetConfig.KeysetName1: ms.config.VaultModule.KeysetConfig.KeysetValue1,
