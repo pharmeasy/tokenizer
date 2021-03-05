@@ -3,6 +3,7 @@ package cryptography
 import (
 	"net/http"
 	"time"
+
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
@@ -18,10 +19,6 @@ import (
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
 )
-
-func (c *ModuleCrypto) status(w http.ResponseWriter, req *http.Request) {
-	w.Write([]byte("ok"))
-}
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 
