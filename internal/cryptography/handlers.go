@@ -210,7 +210,7 @@ func getTokenData(requestParams *decryption.DecryptRequest, c *ModuleCrypto) (*m
 	//tokenData, err := database.GetItemsByToken(tokenIDs)
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByTokenInBatch(tokenIDs)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func getTokenData(requestParams *decryption.DecryptRequest, c *ModuleCrypto) (*m
 func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto) (*encryption.EncryptResponse, error) {
 	encryptionResponse := encryption.EncryptResponse{}
 	reqParamsData := requestParams.EncryptRequestData
-
+	dbInterface := c.database
 	// get keyset handler
 	keyName, keysetHandle, err := keysetmanager.GetKeysetHandlerForEncryption()
 	if err != nil {
@@ -252,6 +252,15 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto)
 		token, err := storeEncryptedData(dbTokenData, c)
 		if err != nil {
 			return nil, err
+		}
+
+		integrityCheckerAdvanced := integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
+		if !integrityCheckerAdvanced {
+			err := dbInterface.DeleteItemByToken(token)
+			if err != nil {
+				return nil, err
+			}
+			return nil, errormanager.SetError("database integrity compromised", nil)
 		}
 
 		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
@@ -297,7 +306,7 @@ func dataDecryptAEAD(cipherText []byte, salt string, kh *keyset.Handle) (*string
 func storeEncryptedData(dbTokenData db.TokenData, c *ModuleCrypto) (string, error) {
 	attempts := 0
 	var err error
-    dbInterface := c.database
+	dbInterface := c.database
 	for attempts < 3 {
 		attempts++
 		dbTokenData.TokenID = tokenmanager.Uniquetoken()
@@ -355,7 +364,7 @@ func updateMetaItems(requestParams *metadata.MetaUpdateRequest, tokenData map[st
 		meta.UpdatedAt = time.Now().Format(time.RFC3339)
 		tokenData[v.Token] = meta
 	}
-    dbInterface := c.database
+	dbInterface := c.database
 	for k, v := range tokenData {
 		err := dbInterface.UpdateMetadataByToken(k, v.Metadata1, v.UpdatedAt)
 		if err != nil {
@@ -385,5 +394,26 @@ func integrityChecker(cipherText []byte, plainText string, salt string, kh *keys
 	if *pt == plainText {
 		return true
 	}
+	return false
+}
+
+func integrityCheckerAdvanced(token string, plainText string, salt string, kh *keyset.Handle, c *ModuleCrypto) bool {
+	dbInterface := c.database
+	tokenData, err := dbInterface.GetItemsByToken([]string{token})
+	if err != nil {
+		//return nil, err
+		return false
+	}
+
+	cipherText := tokenData[token].Content
+	plainTextFromDB, err := dataDecryptAEAD(cipherText, salt, kh)
+	if err != nil {
+		return false
+	}
+
+	if *plainTextFromDB == plainText {
+		return true
+	}
+
 	return false
 }

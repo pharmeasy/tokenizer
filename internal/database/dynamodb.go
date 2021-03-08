@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-
 )
 
 var dbSession *dynamodb.DynamoDB
@@ -35,24 +34,23 @@ func GetSession(dynamoTableName string) {
 
 // GetItemsByTokenInBatch
 
-func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error){
+func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) {
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
 	tokenLength := len(tokenIDs)
-	var filterArray[] map[string]*dynamodb.AttributeValue
+	var filterArray []map[string]*dynamodb.AttributeValue
 
-	for i:=0;i<tokenLength;i++{
+	for i := 0; i < tokenLength; i++ {
 		filterArray = append(filterArray, map[string]*dynamodb.AttributeValue{
 			"tokenId": {
-			   S: aws.String(tokenIDs[i]),
+				S: aws.String(tokenIDs[i]),
 			},
-		
 		})
 	}
-    
-    input := &dynamodb.BatchGetItemInput{
+
+	input := &dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			tableName : {
+			tableName: {
 				Keys: filterArray,
 			},
 		},
@@ -61,13 +59,13 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 	result, err := dbSession.BatchGetItem(input)
 
 	if err != nil {
-		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item"), err)	
+		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item"), err)
 	}
 
 	dataList := result.Responses[tableName]
 	resultLen := len(dataList)
 
-	for i:=0;i<resultLen;i++{
+	for i := 0; i < resultLen; i++ {
 
 		item := db.TokenData{}
 
@@ -83,15 +81,9 @@ func GetItemsByTokenInBatch(tokenIDs [] string) (map[string]db.TokenData, error)
 		return nil, errormanager.SetError(fmt.Sprintf("All DynamoDB Item not found"), nil)
 	}
 
-
-
-    return itemsByTokenIDs, nil
-
-
+	return itemsByTokenIDs, nil
 
 }
-
-
 
 // GetItemsByToken Gets the token record from the db
 func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
@@ -180,7 +172,25 @@ func UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt
 	if err != nil {
 		return errormanager.SetError(fmt.Sprintf("Failed to execute DynamoDB UpdateItem for tokenID %s", tokenID), err)
 	}
-	//	}
+
+	return nil
+}
+
+//DeleteItemByToken deletes an existing item from record
+func DeleteItemByToken(tokenID string) error {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"tokenId": {
+				S: aws.String(tokenID),
+			},
+		},
+	}
+
+	_, err := dbSession.DeleteItem(input)
+	if err != nil {
+		return errormanager.SetError(fmt.Sprintf("Failed to delete the item for tokenID %s", tokenID), err)
+	}
 
 	return nil
 }
