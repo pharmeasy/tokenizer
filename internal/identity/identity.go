@@ -10,8 +10,6 @@ import (
 
 func IdentifierMap() map[string]int {
 	IdentifierMapper := map[string]int{
-		"TRANSFORMATION":   1,
-		"FFOMS":            2,
 		"TELECONSULTATION": 2,
 		"PRODUCT_OMS":      2,
 		"RX_SERVICE":       1,
