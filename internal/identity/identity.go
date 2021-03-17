@@ -14,6 +14,7 @@ func IdentifierMap() map[string]int {
 		"PRODUCT_OMS":      2,
 		"RX_SERVICE":       1,
 		"LOGISTICS":        2,
+		"CMS":              2,
 	}
 
 	return IdentifierMapper
