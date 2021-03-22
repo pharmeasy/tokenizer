@@ -169,16 +169,14 @@ func (d *DynamoDbObject) UpdateMetadataByToken(tokenID string, metadata map[stri
 				S: aws.String(tokenID),
 			},
 		},
-		ReturnValues:        aws.String("UPDATED_NEW"),
-		UpdateExpression:    aws.String("set Metadata1 = :metadata, UpdatedAt = :updatedAt"),
-		ConditionExpression: aws.String("attribute_not_exists(tokenID)"),
+		ReturnValues:     aws.String("UPDATED_NEW"),
+		UpdateExpression: aws.String("set Metadata1 = :metadata, UpdatedAt = :updatedAt"),
 	}
 
 	_, err := dbSession.UpdateItem(input)
 	if err != nil {
 		return errormanager.SetError(fmt.Sprintf("Failed to execute DynamoDB UpdateItem for tokenID %s", tokenID), err)
 	}
-	//	}
 
 	return nil
 }

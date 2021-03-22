@@ -121,7 +121,6 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// fetch records
-	//tokenData, err := database.GetItemsByToken(requestParams.Tokens)
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByTokenInBatch(requestParams.Tokens)
 	if err != nil {
@@ -170,7 +169,6 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 		tokenIDs[i] = requestParams.UpdateParams[i].Token
 	}
 
-	//tokenData, err := database.GetItemsByToken(tokenIDs)
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByTokenInBatch(tokenIDs)
 	if err != nil {
@@ -207,7 +205,6 @@ func getTokenData(requestParams *decryption.DecryptRequest, c *ModuleCrypto) (*m
 		tokenIDs[i] = requestParams.DecryptRequestData[i].Token
 	}
 
-	//tokenData, err := database.GetItemsByToken(tokenIDs)
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByTokenInBatch(tokenIDs)
 
