@@ -12,3 +12,21 @@ server:
     port: 8125
   respondingtimeouts:
     readtimeout: 3000ms
+vaultmodule:
+  keysetconfig:
+    keysetname1: ks1-1
+    keysetname2: ks2-1
+    keysetname3: ks3-1
+    keysetname4: ks4-1
+    keysetvalue1: "{ \"keysetInfo\": { \"primaryKeyId\": 1747494060, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1747494060, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHIQkLlr629X7IiulKowkscAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBGL1Y5zAn4FDnnWkgIBEICBh47nZmrjziKp9KwtDfQHkGqq1EX+tejM+ZxPdfbWe5xbjFgx+RebqOGCz34j4ek/QuNJNOjIFc/+eiK0IVn6d657uA4Km2VKOpCxrIaWqkAXVB7E22vCg23iIuZsfYiyLzOSD252PRJwE4L/TlpeFHNF4PmBH/Go5+tfhZj/WSDxCavqQQUgMw==\" }"
+    keysetvalue2: "{ \"keysetInfo\": { \"primaryKeyId\": 446340003, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 446340003, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAFvyj6lUPplPhs9F3M08RxnAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDK56wLS7J7VVylmXiQIBEICBh7BCdVmwfSwzz2aQN6KDI2q8N4FJVtstN+j0OheDaMDMBrDvdjYu+tmdhtTqLL0AX1egkuDtmQR2ElWdCtALoCiAxAFAc3TAVaAtzvTwMv+qGcnYOkuswYpujORH+hSmSA7UokT7mgWWIF/TsPnf21IfacwEm2GBjlDLMatzSH3A+VsGcSflpw==\" }"
+    keysetvalue3: "{ \"keysetInfo\": { \"primaryKeyId\": 868620461, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 868620461, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAEGZB6seEpap1DFtfTIsjuaAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDIde9CQnLofpYWyLEgIBEICBh+DgbF5WcrkCETLFfDJWDA360oAeCrjnp3rzJeh7M20c72op5zBM2E/RNN9pZP2qk8Bt18CbYYFpBYkDa+Saw/acnEf9BrOdSGXR7aw8jPOpvoU9PmD22TXGSywYDl7ngBgDOKWPekqke5pHabcE77qflsLDd0SHPhAVEPusL3IPg8AA2mxaCQ==\" }"
+    keysetvalue4: "{ \"keysetInfo\": { \"primaryKeyId\": 1647853046, \"keyInfo\": [{ \"typeUrl\": \"type.googleapis.com/google.crypto.tink.AesGcmKey\", \"outputPrefixType\": \"TINK\", \"keyId\": 1647853046, \"status\": \"ENABLED\" }] }, \"encryptedKeyset\": \"AQICAHi8bFjdSVH5sM5Ii2lLbGeg14e5X59hjSZ0w450ooBMqAHYeK51eGLec8YdBsATNtsuAAAAzzCBzAYJKoZIhvcNAQcGoIG+MIG7AgEAMIG1BgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDOcHYvFNn3M5XdNelwIBEICBh345IoQUiLWx1JHu5Nwu/mw57M384E7OCg+qeCp2RrLVOqnt5yJ6xq6mVOxhmfJPFLKOZeNU09I+Cgo9s4Wi3hHDK8VDukVqNluHIJW6mkjmp+rsc41M5HQCQsTzdm0hZtff6uCrsPEX+Lk7jFDssOMWPiVJECT9OW4cUKQMaYg1sXcofAyElA==\" }"
+  kmsconfig:
+    awskmskey: aws-kms://arn:aws:kms:ap-south-1:127603365779:key/8d853831-94e6-4ac7-a0c7-3e2795e9715b
+  dynamoconfig:
+    dynamodbtablename: StagingTokensV1
+  tokenconfig:
+    instanceid: A1
+  
+  
