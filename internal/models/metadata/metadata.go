@@ -21,14 +21,14 @@ type MetaResponse struct {
 
 // MetaParams is the struct for object
 type MetaParams struct {
-	Token     string            `json:"token"`
-	Metadata1 map[string]string `json:"metadata"`
+	Token    string            `json:"token"`
+	Metadata map[string]string `json:"metadata"`
 }
 
 // UpdateParams contain the meta params to be updated
 type UpdateParams struct {
-	Token     string            `json:"token"`
-	Metadata1 map[string]string `json:"metadata"`
+	Token    string            `json:"token"`
+	Metadata map[string]string `json:"metadata"`
 }
 
 // MetaUpdateResponse represents the successful update response message for successful metadata updates

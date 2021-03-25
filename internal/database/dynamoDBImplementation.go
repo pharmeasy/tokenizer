@@ -48,7 +48,7 @@ func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs []string) (map[string]d
 
 	for i := 0; i < tokenLength; i++ {
 		filterArray = append(filterArray, map[string]*dynamodb.AttributeValue{
-			"tokenId": {
+			"TokenID": {
 				S: aws.String(tokenIDs[i]),
 			},
 		})
@@ -99,7 +99,7 @@ func (d *DynamoDbObject) GetItemsByToken(tokenIDs []string) (map[string]db.Token
 		result, err := dbSession.GetItem(&dynamodb.GetItemInput{
 			TableName: aws.String(tableName),
 			Key: map[string]*dynamodb.AttributeValue{
-				"tokenId": {
+				"TokenID": {
 					S: aws.String(tokenID),
 				},
 			},
@@ -139,7 +139,7 @@ func (d *DynamoDbObject) PutItem(item db.TokenData) error {
 	input := &dynamodb.PutItemInput{
 		Item:                av,
 		TableName:           aws.String(tableName),
-		ConditionExpression: aws.String("attribute_not_exists(tokenId)"),
+		ConditionExpression: aws.String("attribute_not_exists(TokenID)"),
 	}
 
 	_, err = dbSession.PutItem(input)
@@ -165,12 +165,12 @@ func (d *DynamoDbObject) UpdateMetadataByToken(tokenID string, metadata map[stri
 		},
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"tokenId": {
+			"TokenID": {
 				S: aws.String(tokenID),
 			},
 		},
 		ReturnValues:     aws.String("UPDATED_NEW"),
-		UpdateExpression: aws.String("set Metadata1 = :metadata, UpdatedAt = :updatedAt"),
+		UpdateExpression: aws.String("set Metadata = :metadata, UpdatedAt = :updatedAt"),
 	}
 
 	_, err := dbSession.UpdateItem(input)
@@ -186,7 +186,7 @@ func (d *DynamoDbObject) DeleteItemByToken(tokenID string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"tokenId": {
+			"TokenID": {
 				S: aws.String(tokenID),
 			},
 		},

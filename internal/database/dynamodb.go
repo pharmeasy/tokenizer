@@ -30,8 +30,6 @@ func GetSession(dynamoTableName string) {
 	}
 }
 
-
-
 // GetItemsByTokenInBatch
 
 func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) {
@@ -42,7 +40,7 @@ func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) 
 
 	for i := 0; i < tokenLength; i++ {
 		filterArray = append(filterArray, map[string]*dynamodb.AttributeValue{
-			"tokenId": {
+			"TokenID": {
 				S: aws.String(tokenIDs[i]),
 			},
 		})
@@ -93,7 +91,7 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 		result, err := dbSession.GetItem(&dynamodb.GetItemInput{
 			TableName: aws.String(tableName),
 			Key: map[string]*dynamodb.AttributeValue{
-				"tokenId": {
+				"TokenID": {
 					S: aws.String(tokenID),
 				},
 			},
@@ -133,7 +131,7 @@ func PutItem(item db.TokenData) error {
 	input := &dynamodb.PutItemInput{
 		Item:                av,
 		TableName:           aws.String(tableName),
-		ConditionExpression: aws.String("attribute_not_exists(tokenId)"),
+		ConditionExpression: aws.String("attribute_not_exists(TokenID)"),
 	}
 
 	_, err = dbSession.PutItem(input)
@@ -159,13 +157,12 @@ func UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt
 		},
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"tokenId": {
+			"TokenID": {
 				S: aws.String(tokenID),
 			},
 		},
-		ReturnValues:        aws.String("UPDATED_NEW"),
-		UpdateExpression:    aws.String("set Metadata1 = :metadata, UpdatedAt = :updatedAt"),
-		ConditionExpression: aws.String("attribute_not_exists(tokenID)"),
+		ReturnValues:     aws.String("UPDATED_NEW"),
+		UpdateExpression: aws.String("set Metadata = :metadata, UpdatedAt = :updatedAt"),
 	}
 
 	_, err := dbSession.UpdateItem(input)
@@ -181,7 +178,7 @@ func DeleteItemByToken(tokenID string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"tokenId": {
+			"TokenID": {
 				S: aws.String(tokenID),
 			},
 		},
@@ -194,6 +191,3 @@ func DeleteItemByToken(tokenID string) error {
 
 	return nil
 }
-
-
-

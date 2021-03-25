@@ -127,7 +127,7 @@ func SetUpdateMetadataError(requestParams *metadata.MetaUpdateRequest, err error
 	genericError := getGenericErrorByStatus(status)
 	if requestParams != nil {
 		for i := 0; i < len(requestParams.UpdateParams); i++ {
-			requestParams.UpdateParams[i].Metadata1 = nil
+			requestParams.UpdateParams[i].Metadata = nil
 			requestParams.UpdateParams[i].Token = ""
 		}
 

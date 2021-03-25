@@ -243,7 +243,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto)
 			CreatedAt: time.Now().Format(time.RFC3339),
 			UpdatedAt: time.Now().Format(time.RFC3339),
 			Key:       *keyName,
-			Metadata1: reqParamsData[i].Metadata,
+			Metadata:  reqParamsData[i].Metadata,
 		}
 
 		token, err := storeEncryptedData(dbTokenData, c)
@@ -344,9 +344,9 @@ func decryptTokenData(tokenData *map[string]db.TokenData, requestParams *decrypt
 
 		decryptionResponse.DecryptionResponseData = append(decryptionResponse.DecryptionResponseData,
 			decryption.DecryptResponseData{
-				Token:     tokenmanager.FormatToken(token),
-				Content:   *decryptedText,
-				Metadata1: dbTokenData.Metadata1,
+				Token:    tokenmanager.FormatToken(token),
+				Content:  *decryptedText,
+				Metadata: dbTokenData.Metadata,
 			})
 	}
 
@@ -357,13 +357,13 @@ func updateMetaItems(requestParams *metadata.MetaUpdateRequest, tokenData map[st
 
 	for _, v := range requestParams.UpdateParams {
 		meta := tokenData[v.Token]
-		meta.Metadata1 = v.Metadata1
+		meta.Metadata = v.Metadata
 		meta.UpdatedAt = time.Now().Format(time.RFC3339)
 		tokenData[v.Token] = meta
 	}
 	dbInterface := c.database
 	for k, v := range tokenData {
-		err := dbInterface.UpdateMetadataByToken(k, v.Metadata1, v.UpdatedAt)
+		err := dbInterface.UpdateMetadataByToken(k, v.Metadata, v.UpdatedAt)
 		if err != nil {
 			return err
 		}
@@ -378,8 +378,8 @@ func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
 	for _, dbTokenData := range tokenData {
 		metaResponse.MetaParams = append(metaResponse.MetaParams,
 			metadata.MetaParams{
-				Token:     tokenmanager.FormatToken(dbTokenData.TokenID),
-				Metadata1: dbTokenData.Metadata1,
+				Token:    tokenmanager.FormatToken(dbTokenData.TokenID),
+				Metadata: dbTokenData.Metadata,
 			})
 	}
 

@@ -25,7 +25,7 @@ vaultmodule:
   kmsconfig:
     awskmskey: aws-kms://arn:aws:kms:ap-south-1:127603365779:key/8d853831-94e6-4ac7-a0c7-3e2795e9715b
   dynamoconfig:
-    dynamodbtablename: staging_tokens
+    dynamodbtablename: StagingTokensV1
   tokenconfig:
     instanceid: A1
   
