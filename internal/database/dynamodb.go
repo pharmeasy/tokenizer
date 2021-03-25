@@ -15,8 +15,19 @@ import (
 var dbSession *dynamodb.DynamoDB
 var tableName string
 
+/*Interface implementation*/
+type DynamoDbObject struct {
+	TableName string
+}
+
+func GetDynamoDbObject(tableName string) *DynamoDbObject {
+	newDynamoObject := DynamoDbObject{TableName: tableName}
+
+	return &newDynamoObject
+}
+
 // GetSession creates a session if not present
-func GetSession(dynamoTableName string) {
+func (d *DynamoDbObject) GetSession(dynamoTableName string) {
 	if dbSession == nil {
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
@@ -32,7 +43,7 @@ func GetSession(dynamoTableName string) {
 
 // GetItemsByTokenInBatch
 
-func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) {
+func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) {
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
 	tokenLength := len(tokenIDs)
@@ -57,7 +68,7 @@ func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) 
 	result, err := dbSession.BatchGetItem(input)
 
 	if err != nil {
-		return nil, errormanager.SetError(fmt.Sprintf("Error encountered while getting DynamoDB item"), err)
+		return nil, errormanager.SetError("Error encountered while getting DynamoDB item", err)
 	}
 
 	dataList := result.Responses[tableName]
@@ -69,14 +80,14 @@ func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) 
 
 		err = dynamodbattribute.UnmarshalMap(dataList[i], &item)
 		if err != nil {
-			return nil, errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record"), err)
+			return nil, errormanager.SetError("Failed to unmarshal record", err)
 		}
 
 		itemsByTokenIDs[item.TokenID] = item
 	}
 
 	if len(dataList) != len(filterArray) {
-		return nil, errormanager.SetError(fmt.Sprintf("All DynamoDB Item not found"), nil)
+		return nil, errormanager.SetError("All DynamoDB Item not found", nil)
 	}
 
 	return itemsByTokenIDs, nil
@@ -84,7 +95,7 @@ func GetItemsByTokenInBatch(tokenIDs []string) (map[string]db.TokenData, error) 
 }
 
 // GetItemsByToken Gets the token record from the db
-func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
+func (d *DynamoDbObject) GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 	itemsByTokenIDs := make(map[string]db.TokenData)
 
 	for _, tokenID := range tokenIDs {
@@ -110,7 +121,7 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 
 		err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 		if err != nil {
-			return nil, errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record, %v for tokenID %s", err, tokenID), err)
+			return nil, errormanager.SetError(fmt.Sprintf("Failed to unmarshal record, %v for tokenID %s", err, tokenID), err)
 		}
 
 		itemsByTokenIDs[tokenID] = item
@@ -121,11 +132,11 @@ func GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 }
 
 // PutItem stores the record in the db
-func PutItem(item db.TokenData) error {
+func (d *DynamoDbObject) PutItem(item db.TokenData) error {
 
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
-		return errormanager.SetError(fmt.Sprintf("Failed to unmarshal Record for PutItem with tokenID %s", item.TokenID), err)
+		return errormanager.SetError(fmt.Sprintf("Failed to unmarshal record for PutItem with tokenID %s", item.TokenID), err)
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -143,7 +154,7 @@ func PutItem(item db.TokenData) error {
 }
 
 // UpdateMetadataByToken updated attributes in the existing record
-func UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt string) error {
+func (d *DynamoDbObject) UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt string) error {
 
 	meta, _ := dynamodbattribute.MarshalMap(metadata)
 	input := &dynamodb.UpdateItemInput{
@@ -173,8 +184,8 @@ func UpdateMetadataByToken(tokenID string, metadata map[string]string, updatedAt
 	return nil
 }
 
-//DeleteItemByToken deletes an existing item from record
-func DeleteItemByToken(tokenID string) error {
+// DeleteItemByToken deletes an item from dynamodb
+func (d *DynamoDbObject) DeleteItemByToken(tokenID string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{

@@ -46,7 +46,7 @@ func ValidateEncryptionRequest(req *http.Request) (*encryption.EncryptRequest, e
 		if !set[v.ID] {
 			set[v.ID] = true
 		} else {
-			return &params, errormanager.SetValidationEmptyError("ID may be repeated or")
+			return &params, errormanager.SetError("ID is repeated ", nil)
 		}
 	}
 
