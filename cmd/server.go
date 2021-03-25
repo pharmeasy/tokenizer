@@ -37,7 +37,7 @@ func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 		server.WithGlobalConfig(&cfg.Server),
 	)
 
-// Add the crypto module
+	// Add the crypto module
 	svr.AddModule("crypto", cryptography.New(*cfg))
 
 	svr.Start(ctx)
