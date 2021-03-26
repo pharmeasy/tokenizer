@@ -1,7 +1,7 @@
 env: production
 project_name: tokenizer
 prefix: prod
-namespace: "{{ prefix }}"
+namespace: "{{ prefix }}-{{ project_name }}"
 fqdn: "tokenizer.private.pharmeasy.in"
 tag: "{{ prefix }}-{{ build_number }}"
 context: production
