@@ -10,3 +10,4 @@ min_replicas: 5
 max_replicas: 20
 profile: default
 iamrole: K8sRoleTokenizerProd
+vault_script: tokenizervaultenv
