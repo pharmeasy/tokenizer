@@ -11,3 +11,4 @@ max_replicas: 20
 profile: default
 iamrole: K8sRoleTokenizerProd
 vault_script: tokenizervaultenv
+workload_type: compute

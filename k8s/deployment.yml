@@ -9,6 +9,8 @@ metadata:
 --- 
 apiVersion: apps/v1
 kind: Deployment
+nodeSelector:
+  workloadType: {{ workload_type }}
 metadata:
   name: {{ prefix }}-{{ project_name }}-deployment
   namespace: {{ namespace }}
