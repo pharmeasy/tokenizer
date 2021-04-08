@@ -68,8 +68,9 @@ func InitViper(viper *viper.Viper) {
 	viper.SetDefault("VaultModule.DynamoConfig.DynamoDBTableName", "")
 	viper.SetDefault("VaultModule.TokenConfig.InstanceID", "")
 
-	os.Setenv("SERVER_NEWRELIC_ENABLED", "true")
+	os.Setenv("SERVER_NEWRELIC_ENABLED", "false")
 	os.Setenv("SERVER_NEWRELIC_LICENSEKEY", "b451e7f2a22397867187fb27b2c127931b67e44b")
+
 }
 
 //Load Load configuration variables from file

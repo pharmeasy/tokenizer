@@ -14,7 +14,7 @@ import (
 
 //ModuleCrypto ...
 type ModuleCrypto struct {
-	config *config.TokenizerConfig
+	config   *config.TokenizerConfig
 	database *database.DynamoDbObject
 }
 
@@ -36,4 +36,5 @@ func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 		ms.config.VaultModule.KeysetConfig.KeysetName4: ms.config.VaultModule.KeysetConfig.KeysetValue4,
 	})
 	tokenmanager.LoadInstanceIDFromConfig(ms.config.VaultModule.TokenConfig.InstanceID)
+	setNewRelic(&config)
 }
