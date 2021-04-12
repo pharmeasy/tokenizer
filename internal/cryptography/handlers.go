@@ -2,6 +2,7 @@ package cryptography
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -497,7 +498,7 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	if *plainTextFromDB == plainText {
 		return true
 	}
-	errormanager.SetError("data not matched", err)
+	errormanager.SetError(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText), nil)
 
 	return false
 }
