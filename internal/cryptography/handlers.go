@@ -483,18 +483,21 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	tokenData, err := dbInterface.GetItemsByToken([]string{token})
 	if err != nil {
 		//return nil, err
+		errormanager.SetError("Failed to read from database", err)
 		return false
 	}
 
 	cipherText := tokenData[token].Content
 	plainTextFromDB, err := dataDecryptAEAD(cipherText, salt, kh)
 	if err != nil {
+		errormanager.SetError("Failed to decrypt data", err)
 		return false
 	}
 
 	if *plainTextFromDB == plainText {
 		return true
 	}
+	errormanager.SetError("data not matched", err)
 
 	return false
 }
