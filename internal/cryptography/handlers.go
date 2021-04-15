@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
@@ -21,6 +22,7 @@ import (
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"go.uber.org/zap"
 )
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
@@ -484,21 +486,24 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	tokenData, err := dbInterface.GetItemsByToken([]string{token})
 	if err != nil {
 		//return nil, err
-		errormanager.SetError("Failed to read from database", err)
+		logging.GetLogger().Error("Failed to read from database", zap.Error(err))
+		//errormanager.SetError("Failed to read from database", err)
 		return false
 	}
 
 	cipherText := tokenData[token].Content
 	plainTextFromDB, err := dataDecryptAEAD(cipherText, salt, kh)
 	if err != nil {
-		errormanager.SetError("Failed to decrypt data", err)
+		logging.GetLogger().Error("Failed to decrypt data", zap.Error(err))
+		//errormanager.SetError("Failed to decrypt data", err)
 		return false
 	}
 
 	if *plainTextFromDB == plainText {
 		return true
 	}
-	errormanager.SetError(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText), nil)
+	logging.GetLogger().Error(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText))
+	//errormanager.SetError(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText), nil)
 
 	return false
 }
