@@ -345,25 +345,27 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		for !integrityCheckerAdvancedFlag && currentAttempts < insertionAttempts {
 			integrityCheckerAdvancedFlag = integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
 			currentAttempts = currentAttempts + 1
-
+			if currentAttempts == 1 {
+				integrityCheckerAdvancedFlag = false
+			}
 			if !integrityCheckerAdvancedFlag {
 				logging.GetLogger().Info(fmt.Sprintf("database integrity failed for %d nd time", currentAttempts))
-				err := dbInterface.DeleteItemByToken(token)
-				if err != nil {
-					IntegrityCheckerSegment2.End()
-					return nil, err
-				}
 
-				token, err = storeEncryptedData(dbTokenData, c)
+				/*token, err = storeEncryptedData(dbTokenData, c)
 				if err != nil {
 					IntegrityCheckerSegment2.End()
 					return nil, err
-				}
+				}*/
 
 			}
 
 		}
 		if !integrityCheckerAdvancedFlag {
+			err := dbInterface.DeleteItemByToken(token)
+			if err != nil {
+				IntegrityCheckerSegment2.End()
+				return nil, err
+			}
 			return nil, errormanager.SetError("database integrity compromised after max attempts", nil)
 		}
 
