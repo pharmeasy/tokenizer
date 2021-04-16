@@ -345,9 +345,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		for !integrityCheckerAdvancedFlag && currentAttempts < insertionAttempts {
 			integrityCheckerAdvancedFlag = integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
 			currentAttempts = currentAttempts + 1
-			if currentAttempts == 1 {
-				integrityCheckerAdvancedFlag = false
-			}
+
 			if !integrityCheckerAdvancedFlag {
 				logging.GetLogger().Info(fmt.Sprintf("database integrity failed for %d nd time", currentAttempts))
 
