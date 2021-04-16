@@ -339,10 +339,10 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		IntegrityCheckerSegment2.StartTime = txn.StartSegmentNow()
 
 		integrityCheckerAdvancedFlag := false
-		insertionAttempts := 2
+		maxAttempts := 5
 		currentAttempts := 0
 
-		for !integrityCheckerAdvancedFlag && currentAttempts < insertionAttempts {
+		for !integrityCheckerAdvancedFlag && currentAttempts < maxAttempts {
 			integrityCheckerAdvancedFlag = integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
 			currentAttempts = currentAttempts + 1
 
