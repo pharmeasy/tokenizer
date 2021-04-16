@@ -337,15 +337,36 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		IntegrityCheckerSegment2 := newrelic.Segment{}
 		IntegrityCheckerSegment2.Name = "IntegrityCheckerSegment2"
 		IntegrityCheckerSegment2.StartTime = txn.StartSegmentNow()
-		integrityCheckerAdvanced := integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
-		if !integrityCheckerAdvanced {
-			err := dbInterface.DeleteItemByToken(token)
-			if err != nil {
-				return nil, err
+
+		integrityCheckerAdvancedFlag := false
+		insertionAttempts := 2
+		currentAttempts := 0
+
+		for !integrityCheckerAdvancedFlag && currentAttempts < insertionAttempts {
+			integrityCheckerAdvancedFlag = integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
+			currentAttempts = currentAttempts + 1
+
+			if !integrityCheckerAdvancedFlag {
+				logging.GetLogger().Info(fmt.Sprintf("database integrity failed for %d nd time", currentAttempts))
+				err := dbInterface.DeleteItemByToken(token)
+				if err != nil {
+					IntegrityCheckerSegment2.End()
+					return nil, err
+				}
+
+				token, err = storeEncryptedData(dbTokenData, c)
+				if err != nil {
+					IntegrityCheckerSegment2.End()
+					return nil, err
+				}
+
 			}
-			IntegrityCheckerSegment2.End()
-			return nil, errormanager.SetError("database integrity compromised", nil)
+
 		}
+		if !integrityCheckerAdvancedFlag {
+			return nil, errormanager.SetError("database integrity compromised after max attempts", nil)
+		}
+
 		IntegrityCheckerSegment2.End()
 		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
 			encryption.ResponseData{
