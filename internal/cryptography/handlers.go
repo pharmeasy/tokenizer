@@ -499,9 +499,7 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByToken([]string{token})
 	if err != nil {
-		//return nil, err
 		logging.GetLogger().Error("Failed to read from database", zap.Error(err))
-		//errormanager.SetError("Failed to read from database", err)
 		return false
 	}
 
@@ -509,7 +507,6 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	plainTextFromDB, err := dataDecryptAEAD(cipherText, salt, kh)
 	if err != nil {
 		logging.GetLogger().Error("Failed to decrypt data", zap.Error(err))
-		//errormanager.SetError("Failed to decrypt data", err)
 		return false
 	}
 
@@ -517,7 +514,6 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 		return true
 	}
 	logging.GetLogger().Error("data not matched")
-	//errormanager.SetError(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText), nil)
 
 	return false
 }
