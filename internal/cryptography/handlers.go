@@ -516,7 +516,7 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	if *plainTextFromDB == plainText {
 		return true
 	}
-	logging.GetLogger().Error(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText))
+	logging.GetLogger().Error("data not matched")
 	//errormanager.SetError(fmt.Sprintf("data not matched plainTextFromDB= %s  plainText = %s", *plainTextFromDB, plainText), nil)
 
 	return false
