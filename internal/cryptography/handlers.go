@@ -348,13 +348,6 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 
 			if !integrityCheckerAdvancedFlag {
 				logging.GetLogger().Info(fmt.Sprintf("database integrity failed for %d nd time", currentAttempts))
-
-				/*token, err = storeEncryptedData(dbTokenData, c)
-				if err != nil {
-					IntegrityCheckerSegment2.End()
-					return nil, err
-				}*/
-
 			}
 
 		}
