@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 
+	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
-
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -185,7 +185,9 @@ func (d *DynamoDbObject) UpdateMetadataByToken(tokenID string, metadata map[stri
 }
 
 // DeleteItemByToken deletes an item from dynamodb
+
 func (d *DynamoDbObject) DeleteItemByToken(tokenID string) error {
+	ALL_OLD := "ALL_OLD"
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -193,9 +195,15 @@ func (d *DynamoDbObject) DeleteItemByToken(tokenID string) error {
 				S: aws.String(tokenID),
 			},
 		},
+		ReturnValues: &ALL_OLD,
 	}
 
-	_, err := dbSession.DeleteItem(input)
+	output, err := dbSession.DeleteItem(input)
+	deletedTokenId := output.Attributes["TokenID"]
+
+	if *deletedTokenId.S == tokenID {
+		logging.GetLogger().Info(fmt.Sprintf("Succesffuly deleted %s", tokenID))
+	}
 	if err != nil {
 		return errormanager.SetError(fmt.Sprintf("Failed to delete the item for tokenID %s", tokenID), err)
 	}
