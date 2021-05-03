@@ -344,11 +344,11 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		currentAttempts := 0
 
 		for !integrityCheckerAdvancedFlag && currentAttempts < maxAttempts {
-			integrityCheckerAdvancedFlag = integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c)
+			integrityCheckerAdvancedFlag = integrityCheckerAdvanced(token, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle, c, requestParams.RequestID)
 			currentAttempts = currentAttempts + 1
 
 			if !integrityCheckerAdvancedFlag {
-				logging.GetLogger().Info(fmt.Sprintf("database integrity failed for %d nd time", currentAttempts))
+				logging.GetLogger().Info(fmt.Sprintf("database integrity failed for attempt no. %d for request_id : %s", currentAttempts, requestParams.RequestID))
 			}
 
 		}
@@ -359,7 +359,7 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 				return nil, err
 			}
 			integrityCheckerAdvancedSegment.End()
-			return nil, errormanager.SetError("database integrity compromised after max attempts", nil)
+			return nil, errormanager.SetError("database integrity compromised after max attempts for request_id : %s", nil)
 		}
 
 		integrityCheckerAdvancedSegment.End()
@@ -497,25 +497,25 @@ func integrityChecker(cipherText []byte, plainText string, salt string, kh *keys
 	return false
 }
 
-func integrityCheckerAdvanced(token string, plainText string, salt string, kh *keyset.Handle, c *ModuleCrypto) bool {
+func integrityCheckerAdvanced(token string, plainText string, salt string, kh *keyset.Handle, c *ModuleCrypto, requestID string) bool {
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByToken([]string{token})
 	if err != nil {
-		logging.GetLogger().Error("Failed to read from database", zap.Error(err))
+		logging.GetLogger().Error(fmt.Sprintf("Failed to read from database for Request id %s: ", requestID), zap.Error(err))
 		return false
 	}
 
 	cipherText := tokenData[token].Content
 	plainTextFromDB, err := dataDecryptAEAD(cipherText, salt, kh)
 	if err != nil {
-		logging.GetLogger().Error("Failed to decrypt data", zap.Error(err))
+		logging.GetLogger().Error(fmt.Sprintf("Failed to decrypt data for Request id %s: ", requestID), zap.Error(err))
 		return false
 	}
 
 	if *plainTextFromDB == plainText {
 		return true
 	}
-	logging.GetLogger().Error("data not matched")
+	logging.GetLogger().Error(fmt.Sprintf("data not matched for Request id %s: ", requestID))
 
 	return false
 }
