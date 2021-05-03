@@ -56,11 +56,12 @@ func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs []string) (map[string]d
 			},
 		})
 	}
-
+	isConsistentRead := true
 	input := &dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{
 			tableName: {
-				Keys: filterArray,
+				Keys:           filterArray,
+				ConsistentRead: &isConsistentRead,
 			},
 		},
 	}
@@ -72,6 +73,16 @@ func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs []string) (map[string]d
 	}
 
 	dataList := result.Responses[tableName]
+	unprocessedTokens := result.UnprocessedKeys[tableName]
+
+	if unprocessedTokens != nil && len(unprocessedTokens.Keys) > 0 {
+		unprocessedTokenList := ""
+		for i := 0; i < len(unprocessedTokens.Keys); i++ {
+			unprocessedTokenList = unprocessedTokenList + *unprocessedTokens.Keys[i]["TokenID"].S
+		}
+		errormanager.SetError(fmt.Sprintf("All keys not processed.Token list : %s", unprocessedTokenList), nil)
+	}
+
 	resultLen := len(dataList)
 
 	for i := 0; i < resultLen; i++ {
@@ -97,7 +108,7 @@ func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs []string) (map[string]d
 // GetItemsByToken Gets the token record from the db
 func (d *DynamoDbObject) GetItemsByToken(tokenIDs []string) (map[string]db.TokenData, error) {
 	itemsByTokenIDs := make(map[string]db.TokenData)
-
+	isConsistentRead := true
 	for _, tokenID := range tokenIDs {
 		result, err := dbSession.GetItem(&dynamodb.GetItemInput{
 			TableName: aws.String(tableName),
@@ -106,6 +117,7 @@ func (d *DynamoDbObject) GetItemsByToken(tokenIDs []string) (map[string]db.Token
 					S: aws.String(tokenID),
 				},
 			},
+			ConsistentRead: &isConsistentRead,
 		})
 
 		if err != nil {
