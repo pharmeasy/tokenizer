@@ -11,3 +11,5 @@ max_replicas: 20
 profile: default
 iamrole: K8sRoleTokenizerProd
 vault_script: tokenizervaultenv
+ambassador_id: default
+account_number: "127603365779"
