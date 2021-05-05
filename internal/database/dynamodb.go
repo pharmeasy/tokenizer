@@ -78,7 +78,7 @@ func (d *DynamoDbObject) GetItemsByTokenInBatch(tokenIDs []string) (map[string]d
 	if unprocessedTokens != nil && len(unprocessedTokens.Keys) > 0 {
 		unprocessedTokenList := ""
 		for i := 0; i < len(unprocessedTokens.Keys); i++ {
-			unprocessedTokenList = unprocessedTokenList + *unprocessedTokens.Keys[i]["TokenID"].S
+			unprocessedTokenList = unprocessedTokenList + " " + *unprocessedTokens.Keys[i]["TokenID"].S
 		}
 		return nil, errormanager.SetError(fmt.Sprintf("All keys not processed.Token list : %s", unprocessedTokenList), nil)
 	}
