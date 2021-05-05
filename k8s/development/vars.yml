@@ -10,3 +10,5 @@ min_replicas: 1
 max_replicas: 1
 profile: default
 iamrole: K8sRoleTokenizerDev
+ambassador_id: default
+account_number: "127603365779"
