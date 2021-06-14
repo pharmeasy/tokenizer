@@ -2,6 +2,7 @@ package validator
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -77,7 +78,7 @@ func ValidateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, e
 		}
 		tokenError := tokenmanager.ExtractToken(&params.DecryptRequestData[i].Token)
 		if tokenError != nil {
-			return &params, errormanager.SetError("Token extraction error", tokenError)
+			return &params, errormanager.SetError(fmt.Sprintf("Token extraction error for tokenID : %s", params.DecryptRequestData[i].Token), tokenError)
 		}
 	}
 
