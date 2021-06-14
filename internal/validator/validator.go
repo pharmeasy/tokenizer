@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
 )
 
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request
@@ -73,6 +74,10 @@ func ValidateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, e
 	for i := 0; i < len(params.DecryptRequestData); i++ {
 		if params.DecryptRequestData[i].Token == "" {
 			return &params, errormanager.SetValidationEmptyError("Token")
+		}
+		tokenError := tokenmanager.ExtractToken(&params.DecryptRequestData[i].Token)
+		if tokenError != nil {
+			return &params, errormanager.SetError("Token extraction error", tokenError)
 		}
 	}
 
