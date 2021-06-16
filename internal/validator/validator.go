@@ -106,6 +106,10 @@ func ValidateMetadataRequest(req *http.Request) (*metadata.MetaRequest, error) {
 		if params.Tokens[i] == "" {
 			return &params, errormanager.SetValidationEmptyError("Token")
 		}
+		tokenError := tokenmanager.ExtractToken(&params.Tokens[i])
+		if tokenError != nil {
+			return &params, errormanager.SetError(fmt.Sprintf("Token extraction error for tokenID : %s", params.Tokens[i]), tokenError)
+		}
 	}
 
 	return &params, nil
@@ -133,9 +137,15 @@ func ValidateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 			return &params, errormanager.SetValidationEmptyError("Token")
 		}
 
+		tokenError := tokenmanager.ExtractToken(&params.UpdateParams[i].Token)
+		if tokenError != nil {
+			return &params, errormanager.SetError(fmt.Sprintf("Token extraction error for tokenID : %s", params.UpdateParams[i].Token), tokenError)
+		}
+
 		if len(params.UpdateParams[i].Metadata) == 0 {
 			return &params, errormanager.SetValidationEmptyError("Metadata")
 		}
+
 	}
 
 	return &params, nil

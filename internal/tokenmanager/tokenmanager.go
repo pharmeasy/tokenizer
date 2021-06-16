@@ -34,6 +34,7 @@ func ExtractToken(token *string) error {
 
 	if strings.HasPrefix(*token, formattedTokenPrefix) {
 		*token = strings.TrimPrefix(*token, formattedTokenPrefix)
+		fmt.Println(*token)
 		return nil
 	} else {
 		return errormanager.SetError("Invalid Token Structure", nil)
