@@ -2,6 +2,7 @@ package validator
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
 )
 
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request
@@ -74,6 +76,10 @@ func ValidateDecryptionRequest(req *http.Request) (*decryption.DecryptRequest, e
 		if params.DecryptRequestData[i].Token == "" {
 			return &params, errormanager.SetValidationEmptyError("Token")
 		}
+		tokenError := tokenmanager.ExtractToken(&params.DecryptRequestData[i].Token)
+		if tokenError != nil {
+			return &params, errormanager.SetError(fmt.Sprintf("Token extraction error for tokenID : %s", params.DecryptRequestData[i].Token), tokenError)
+		}
 	}
 
 	return &params, nil
@@ -99,6 +105,10 @@ func ValidateMetadataRequest(req *http.Request) (*metadata.MetaRequest, error) {
 	for i := 0; i < len(params.Tokens); i++ {
 		if params.Tokens[i] == "" {
 			return &params, errormanager.SetValidationEmptyError("Token")
+		}
+		tokenError := tokenmanager.ExtractToken(&params.Tokens[i])
+		if tokenError != nil {
+			return &params, errormanager.SetError(fmt.Sprintf("Token extraction error for tokenID : %s", params.Tokens[i]), tokenError)
 		}
 	}
 
@@ -127,9 +137,15 @@ func ValidateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 			return &params, errormanager.SetValidationEmptyError("Token")
 		}
 
+		tokenError := tokenmanager.ExtractToken(&params.UpdateParams[i].Token)
+		if tokenError != nil {
+			return &params, errormanager.SetError(fmt.Sprintf("Token extraction error for tokenID : %s", params.UpdateParams[i].Token), tokenError)
+		}
+
 		if len(params.UpdateParams[i].Metadata) == 0 {
 			return &params, errormanager.SetValidationEmptyError("Metadata")
 		}
+
 	}
 
 	return &params, nil
