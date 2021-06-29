@@ -2,7 +2,9 @@ package tokenmanager
 
 import (
 	"fmt"
+	"strings"
 
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"github.com/google/uuid"
 )
 
@@ -24,4 +26,17 @@ func FormatToken(token string) string {
 // LoadInstanceIDFromConfig loads instance id from env
 func LoadInstanceIDFromConfig(str string) {
 	instanceID = str
+}
+
+func ExtractToken(token *string) error {
+	tokenPrefix := "token://%s/"
+	formattedTokenPrefix := fmt.Sprintf(tokenPrefix, instanceID)
+
+	if strings.HasPrefix(*token, formattedTokenPrefix) {
+		*token = strings.TrimPrefix(*token, formattedTokenPrefix)
+		fmt.Println(*token)
+		return nil
+	} else {
+		return errormanager.SetError("Invalid Token Structure", nil)
+	}
 }
