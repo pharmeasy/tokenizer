@@ -1,0 +1,14 @@
+env: loadtest
+project_name: tokenizer
+prefix: loadtest
+namespace: "bolt-{{ env }}"
+fqdn: "tokenizer-load.boltonline.in"
+tag: "{{ prefix }}-{{ build_number }}"
+context: bolt-dev
+env_during_build: True
+min_replicas: 5
+max_replicas: 20
+profile: default
+iamrole: K8sRoleTokenizerLoadtest
+ambassador_id: logistics-ambassador-loadtest
+account_number: "451964786384"
