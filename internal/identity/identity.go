@@ -20,6 +20,7 @@ func IdentifierMap() map[string]int {
 		"ALLOY":            2,
 		"ABACUS":           1,
 		"DATAPLATFORM":     1,
+		"DOCSTAT":          1,
 	}
 
 	return IdentifierMapper
