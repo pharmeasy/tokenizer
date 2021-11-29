@@ -21,6 +21,7 @@ func IdentifierMap() map[string]int {
 		"ABACUS":           1,
 		"DATAPLATFORM":     1,
 		"DOCSTAT":          1,
+		"PROCUREMENT-PARTNER-MASTER":	1,
 	}
 
 	return IdentifierMapper
