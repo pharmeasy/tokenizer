@@ -14,7 +14,7 @@ import (
 
 //ModuleCrypto ...
 type ModuleCrypto struct {
-	config *config.TokenizerConfig
+	config   *config.TokenizerConfig
 	database *database.DynamoDbObject
 }
 
