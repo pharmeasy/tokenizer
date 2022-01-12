@@ -2,7 +2,7 @@ env: procurement-production
 project_name: tokenizer
 prefix: prod
 namespace: "{{ project_name }}-{{ env }}"
-fqdn: "tokenizer.private.mercuryonline.co"
+fqdn: "tokenizer-procurement.private.mercuryonline.co"
 tag: "{{ prefix }}-{{ build_number }}"
 context: mercury-prod
 env_during_build: True
