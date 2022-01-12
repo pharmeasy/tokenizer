@@ -1,4 +1,4 @@
-env: mercury-production
+env: procurement-production
 project_name: tokenizer
 prefix: prod
 namespace: "{{ project_name }}-{{ prefix }}"
