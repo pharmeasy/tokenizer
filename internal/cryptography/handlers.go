@@ -1,7 +1,10 @@
 package cryptography
 
 import (
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/hashing"
 	"context"
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -518,4 +521,49 @@ func integrityCheckerAdvanced(token string, plainText string, salt string, kh *k
 	logging.GetLogger().Error(fmt.Sprintf("data not matched for Request id %s: ", requestID))
 
 	return false
+}
+
+func generateHash(w http.ResponseWriter, req *http.Request) {
+	generateHashRequest, err := validator.ValidateGenerateHashEndpoint(req)
+	if err != nil {
+		errormanager.RenderGenerateHashErrorResponse(w, req, http.StatusBadRequest, errormanager.SetGenerateHashError(generateHashRequest, http.StatusBadRequest))
+		return
+	}
+
+	isAuthenticated := identity.AuthenticateRequest(generateHashRequest.Identifier)
+	if !isAuthenticated {
+		errormanager.RenderGenerateHashErrorResponse(w, req, http.StatusForbidden,
+			errormanager.SetGenerateHashError(generateHashRequest, http.StatusForbidden))
+		return
+	}
+
+	var resp []hashing.Response
+	for _, data := range generateHashRequest.Data {
+		hashedOutput, err := generateHashForData(data.Content)
+		if err != nil {
+			continue //revisit
+		}
+
+		resp = append(resp, hashing.Response{
+			Id:   data.Id,
+			Hash: *hashedOutput,
+		})
+	}
+
+	render.JSON(w, req, &hashing.GenerateHashResponse{resp})
+}
+
+func generateHashForData(body interface{}) (*string, error) {
+	hash := sha256.New()
+
+	payload, err := json.Marshal(body)
+
+	if err != nil {
+		logging.GetLogger().Error("Unable to create hash ", zap.Error(err))
+		return nil, err
+	}
+
+	hash.Write(payload)
+	hashString := fmt.Sprintf("%x", hash.Sum(nil))
+	return &hashString, nil
 }

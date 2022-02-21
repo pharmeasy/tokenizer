@@ -1,6 +1,7 @@
 package errormanager
 
 import (
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/hashing"
 	"errors"
 	"fmt"
 	"net/http"
@@ -93,6 +94,10 @@ func RenderUpdateMetadataErrorResponse(w http.ResponseWriter, req *http.Request,
 	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
 }
 
+func RenderGenerateHashErrorResponse(w http.ResponseWriter, req *http.Request, status uint, err error) {
+	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
+}
+
 //SetDecryptionError logs non sensitive encryption data and returns a generic error
 func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, status uint) error {
 	genericError := getGenericErrorByStatus(status)
@@ -136,5 +141,12 @@ func SetUpdateMetadataError(requestParams *metadata.MetaUpdateRequest, err error
 
 	}
 	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
+	return genericError
+}
+
+func SetGenerateHashError(request *hashing.GenerateHashRequest, status uint) error {
+	genericError := getGenericErrorByStatus(status)
+	logging.GetLogger().Error(genericError.Error(), zap.Any("request", request))
+
 	return genericError
 }

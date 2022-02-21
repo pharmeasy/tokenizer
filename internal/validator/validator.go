@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/hashing"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -149,4 +150,22 @@ func ValidateMetadataUpdateRequest(req *http.Request) (*metadata.MetaUpdateReque
 	}
 
 	return &params, nil
+}
+
+func ValidateGenerateHashEndpoint(req *http.Request) (*hashing.GenerateHashRequest, error) {
+	var request hashing.GenerateHashRequest
+
+	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+		return nil, errormanager.SetValidationDecodeError("generate hash", err)
+	}
+
+	if request.RequestId == "" {
+		return &request, errormanager.SetValidationEmptyError("Request ID")
+	}
+
+	if request.Identifier == "" {
+		return &request, errormanager.SetValidationEmptyError("Identifier")
+	}
+
+	return &request, nil
 }
