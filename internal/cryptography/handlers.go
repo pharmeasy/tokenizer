@@ -366,12 +366,23 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		}
 
 		integrityCheckerAdvancedSegment.End()
-		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
-			encryption.ResponseData{
+		if requestParams.HashRequired {
+			hashedOutput, err := generateHashForData(reqParamsData[i].Content)
+			if err != nil {
+				continue //revisit
+			}
+			encryptionResponse.ResponseData = append(encryptionResponse.ResponseData, encryption.ResponseData{
 				ID:    reqParamsData[i].ID,
 				Token: tokenmanager.FormatToken(token),
+				Hash:  hashedOutput,
 			})
-
+		} else {
+			encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
+				encryption.ResponseData{
+					ID:    reqParamsData[i].ID,
+					Token: tokenmanager.FormatToken(token),
+				})
+		}
 	}
 
 	return &encryptionResponse, nil

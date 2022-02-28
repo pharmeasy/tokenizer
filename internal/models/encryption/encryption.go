@@ -7,14 +7,16 @@ type EncryptResponse struct {
 
 // ResponseData is the struct for object
 type ResponseData struct {
-	ID    string `json:"id"`
-	Token string `json:"token"`
+	ID    string  `json:"id"`
+	Token string  `json:"token"`
+	Hash  *string `json:"hash"`
 }
 
 // EncryptRequest represents the successful encryption request
 type EncryptRequest struct {
 	RequestID          string               `json:"requestId"`
 	Identifier         string               `json:"identifier"`
+	HashRequired       bool                 `json:"hashRequired"`
 	EncryptRequestData []EncryptRequestData `json:"data"`
 }
 
