@@ -91,7 +91,6 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
@@ -109,7 +108,6 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusBadRequest,
 			errormanager.SetMetadataError(requestParams, err, http.StatusBadRequest))
-		// metadataValidationSegment.End()
 		return
 	}
 
