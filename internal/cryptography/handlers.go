@@ -26,17 +26,10 @@ import (
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 
-	// get parsed data
-	// txn := newrelic.FromContext(req.Context())
-	// encryptionValidationSegment := newrelic.Segment{}
-	// encryptionValidationSegment.Name = "EncryptionValidationSegment"
-	// encryptionValidationSegment.StartTime = txn.StartSegmentNow()
-
 	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusBadRequest,
 			errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest))
-		// encryptionValidationSegment.End()
 		return
 	}
 
@@ -45,7 +38,6 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	if !isAuthenticated {
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden))
-		// encryptionValidationSegment.End()
 		return
 	}
 
@@ -54,10 +46,8 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	if !isAuthorized {
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden))
-		// encryptionValidationSegment.End()
 		return
 	}
-	// encryptionValidationSegment.End()
 	// encrypt data
 	encryptedData, err := encryptTokenData(requestParams, c, req.Context())
 	if err != nil {
@@ -70,16 +60,10 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
-	// validate request params
-	// txn := newrelic.FromContext(req.Context())
-	// decryptionValidationSegment := newrelic.Segment{}
-	// decryptionValidationSegment.Name = "DecryptionValidationSegment"
-	// decryptionValidationSegment.StartTime = txn.StartSegmentNow()
 	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusBadRequest,
 			errormanager.SetDecryptionError(requestParams, err, http.StatusBadRequest))
-		// decryptionValidationSegment.End()
 		return
 	}
 
@@ -88,23 +72,16 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	if !isAuthenticated {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
-		// decryptionValidationSegment.End()
 		return
 	}
-	// decryptionValidationSegment.End()
 
-	// getTokensInBatchSegment := newrelic.Segment{}
-	// getTokensInBatchSegment.Name = "GetTokensInBatchSegment"
-	// getTokensInBatchSegment.StartTime = txn.StartSegmentNow()
 	// fetch records
 	tokenData, err := getTokenData(requestParams, c)
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
-		// getTokensInBatchSegment.End()
 		return
 	}
-	// getTokensInBatchSegment.End()
 
 	// authorize token access
 	isAuthorized := identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)
@@ -114,28 +91,18 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-	// decryptionSegment := newrelic.Segment{}
-	// decryptionSegment.Name = "DecryptionSegment"
-	// decryptionSegment.StartTime = txn.StartSegmentNow()
-	// decrypt data
+
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
-		// decryptionSegment.End()
 		return
 	}
-	// decryptionSegment.End()
 	render.JSON(w, req, decryptedData)
 
 }
 
 func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
-
-	// txn := newrelic.FromContext(req.Context())
-	// metadataValidationSegment := newrelic.Segment{}
-	// metadataValidationSegment.Name = "MetadataValidationSegment"
-	// metadataValidationSegment.StartTime = txn.StartSegmentNow()
 	// validate request params
 
 	requestParams, err := validator.ValidateMetadataRequest(req)
@@ -151,24 +118,17 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	if !isAuthenticated {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetMetadataError(requestParams, nil, http.StatusForbidden))
-		// metadataValidationSegment.End()
 		return
 	}
-	// metadataValidationSegment.End()
 
-	// getTokensInBatchSegment := newrelic.Segment{}
-	// getTokensInBatchSegment.Name = "GetTokensInBatchSegment"
-	// getTokensInBatchSegment.StartTime = txn.StartSegmentNow()
 	// fetch records
 	dbInterface := c.database
 	tokenData, err := dbInterface.GetItemsByTokenInBatch(requestParams.Tokens)
 	if err != nil {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetMetadataError(requestParams, err, http.StatusInternalServerError))
-		// getTokensInBatchSegment.End()
 		return
 	}
-	// getTokensInBatchSegment.End()
 
 	// authorize token access
 	isAuthorized := identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
@@ -179,29 +139,19 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// return metadata
-	// filterMetadataSegment := newrelic.Segment{}
-	// filterMetadataSegment.Name = "FilterMetadataSegment"
-	// filterMetadataSegment.StartTime = txn.StartSegmentNow()
 
 	metadataResponse := getMetaItems(tokenData)
-
-	// filterMetadataSegment.End()
 
 	render.JSON(w, req, metadataResponse)
 }
 
 func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) {
 
-	// txn := newrelic.FromContext(req.Context())
-	// updateMetadataValidationSegment := newrelic.Segment{}
-	// updateMetadataValidationSegment.Name = "UpdateMetadataValidationSegment"
-	// updateMetadataValidationSegment.StartTime = txn.StartSegmentNow()
 	// validate request params
 	requestParams, err := validator.ValidateMetadataUpdateRequest(req)
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusBadRequest,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusBadRequest))
-		// updateMetadataValidationSegment.End()
 		return
 	}
 
@@ -210,10 +160,8 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 	if !isAuthenticated {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusForbidden,
 			errormanager.SetUpdateMetadataError(requestParams, nil, http.StatusForbidden))
-		// updateMetadataValidationSegment.End()
 		return
 	}
-	// updateMetadataValidationSegment.End()
 
 	// fetch records
 	payloadSize := len(requestParams.UpdateParams)
@@ -225,18 +173,12 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 
 	dbInterface := c.database
 
-	// getTokensInBatchSegment := newrelic.Segment{}
-	// getTokensInBatchSegment.Name = "GetTokensInBatchSegment"
-	// getTokensInBatchSegment.StartTime = txn.StartSegmentNow()
-
 	tokenData, err := dbInterface.GetItemsByTokenInBatch(tokenIDs)
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
-		// getTokensInBatchSegment.End()
 		return
 	}
-	// getTokensInBatchSegment.End()
 
 	// authorize token access
 	isAuthorized := identity.AuthorizeTokenAccess(&tokenData, requestParams.Identifier)
@@ -246,18 +188,13 @@ func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	// updateMetadataSegment := newrelic.Segment{}
-	// updateMetadataSegment.Name = "UpdateMetadataSegment"
-	// updateMetadataSegment.StartTime = txn.StartSegmentNow()
 	//update metadata
 	err = updateMetaItems(requestParams, tokenData, c)
 	if err != nil {
 		errormanager.RenderUpdateMetadataErrorResponse(w, req, http.StatusInternalServerError,
 			errormanager.SetUpdateMetadataError(requestParams, err, http.StatusInternalServerError))
-		// updateMetadataSegment.End()
 		return
 	}
-	// updateMetadataSegment.End()
 
 	render.JSON(w, req, "Metadata updated successfully.")
 }
@@ -286,7 +223,6 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 	reqParamsData := requestParams.EncryptRequestData
 	dbInterface := c.database
 	// get keyset handler
-	// txn := newrelic.FromContext(ctx)
 
 	keyName, keysetHandle, err := keysetmanager.GetKeysetHandlerForEncryption()
 	if err != nil {
@@ -295,25 +231,15 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 
 	for i := 0; i < len(reqParamsData); i++ {
 		// encrypt text
-		// encryptionSegment := newrelic.Segment{}
-		// encryptionSegment.Name = "EncryptionSegment"
-		// encryptionSegment.StartTime = txn.StartSegmentNow()
 		ciphertext, err := dataEncryptAEAD(reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle)
 		if err != nil {
-			// encryptionSegment.End()
 			return nil, err
 		}
-		// encryptionSegment.End()
 
-		// integrityCheckerBasicSegment := newrelic.Segment{}
-		// integrityCheckerBasicSegment.Name = "IntegrityCheckerBasicSegment"
-		// integrityCheckerBasicSegment.StartTime = txn.StartSegmentNow()
 		integrityChecker := integrityChecker(ciphertext, reqParamsData[i].Content, reqParamsData[i].Salt, keysetHandle)
 		if !integrityChecker {
-			// integrityCheckerBasicSegment.End()
 			return nil, errormanager.SetError("data integrity compromised", nil)
 		}
-		// integrityCheckerBasicSegment.End()
 
 		dbTokenData := db.TokenData{
 			Level:     reqParamsData[i].Level,
@@ -324,19 +250,10 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 			Metadata:  reqParamsData[i].Metadata,
 		}
 
-		// storeDatabaseToken := newrelic.Segment{}
-		// storeDatabaseToken.Name = "StoreDatabaseToken"
-		// storeDatabaseToken.StartTime = txn.StartSegmentNow()
 		token, err := storeEncryptedData(dbTokenData, c)
 		if err != nil {
-			// storeDatabaseToken.End()
 			return nil, err
 		}
-		// storeDatabaseToken.End()
-
-		// integrityCheckerAdvancedSegment := newrelic.Segment{}
-		// integrityCheckerAdvancedSegment.Name = "IntegrityCheckerAdvancedSegment"
-		// integrityCheckerAdvancedSegment.StartTime = txn.StartSegmentNow()
 
 		integrityCheckerAdvancedFlag := false
 		maxAttempts := 5
@@ -354,14 +271,11 @@ func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto,
 		if !integrityCheckerAdvancedFlag {
 			err := dbInterface.DeleteItemByToken(token)
 			if err != nil {
-				// integrityCheckerAdvancedSegment.End()
 				return nil, err
 			}
-			// integrityCheckerAdvancedSegment.End()
 			return nil, errormanager.SetError("database integrity compromised after max attempts for request_id : %s", nil)
 		}
 
-		// integrityCheckerAdvancedSegment.End()
 		encryptionResponse.ResponseData = append(encryptionResponse.ResponseData,
 			encryption.ResponseData{
 				ID:    reqParamsData[i].ID,
