@@ -26,7 +26,7 @@ RUN apt-get install -y openssh-client &&\
       apt-get install -y git
 RUN chmod 600 /root/.ssh/id_rsa && \
   eval $(ssh-agent) && \
-  echo -e "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
+  echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
   ssh-add /root/.ssh/id_rsa
 
 # RUN apk update && apk add --no-cache git
@@ -38,7 +38,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates tzdata
 WORKDIR /tokenizer
 COPY . .
 RUN go get -d -v
-RUN CGO_ENABLED=1 GOOS=linux go build -o /tokenizer/tokenizer
+# RUN CGO_ENABLED=1 GOOS=linux go build -o /tokenizer/tokenizer
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo
+
 FROM scratch
 COPY --from=builder /tokenizer /go/bin/tokenizer
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
