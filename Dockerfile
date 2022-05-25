@@ -29,7 +29,7 @@ WORKDIR /tokenizer
 COPY . .
 RUN go get -d -v
 RUN CGO_ENABLED=0 GOOS=linux go build -o /tokenizer/tokenizer
-FROM scratch
+FROM ubuntu:18.04
 COPY --from=builder /tokenizer /go/bin/tokenizer
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
