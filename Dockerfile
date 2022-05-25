@@ -3,21 +3,27 @@ RUN mkdir -p /root/.ssh
 RUN mkdir -p /etc/ssh/
 
 USER root
-RUN apt update && \
-        #python \
-        #py-pip \
-        #groff \
-        #less \
-        #mailcap \
-        #&& \s
-    pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic
+
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        python3-setuptools \
+        groff \
+        less \
+        golang-go \
+    && pip3 install --upgrade pip \
+    && apt-get clean
+
+RUN pip3 --no-cache-dir install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic
+
    # apk -v --purge del py-pip && \
   #  rm /var/cache/apk/*
 COPY id_rsa /root/.ssh/id_rsa
-COPY --from=build ./lib/apm/appdynamics/libappdynamics.so /usr/local/lib/libappdynamics.so
+COPY ./lib/apm/appdynamics/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
 
-#RUN apk add --update git openssh-client && \
-
+RUN apt-get install -y openssh-client &&\
+      apt-get install -y git
 RUN chmod 600 /root/.ssh/id_rsa && \
   eval $(ssh-agent) && \
   echo -e "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
