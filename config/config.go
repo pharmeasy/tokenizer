@@ -66,6 +66,16 @@ func InitViper(viper *viper.Viper) {
 	viper.SetDefault("VaultModule.KMSConfig.AWSKMSKey", "")
 	viper.SetDefault("VaultModule.DynamoConfig.DynamoDBTableName", "")
 	viper.SetDefault("VaultModule.TokenConfig.InstanceID", "")
+
+	viper.SetDefault("VaultModule.AppDynamicsConfig.ApplicationName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.TierName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.NodeName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.ControllerHostName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.ControllerPort", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.ControllerUseSSL", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AccountName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AccessKey", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.InitialTimeouts", "")
 }
 
 //Load Load configuration variables from file
