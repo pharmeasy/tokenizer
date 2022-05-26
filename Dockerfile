@@ -40,4 +40,3 @@ ENV LD_LIBRARY_PATH "/usr/local/lib"
 
 EXPOSE 8083
 ENTRYPOINT ["/go/bin/tokenizer/tokenizer", "start"]
-
