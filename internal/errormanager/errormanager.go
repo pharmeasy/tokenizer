@@ -40,7 +40,7 @@ func getGenericErrorByStatus(status uint) error {
 }
 
 // SetEncryptionError logs non sensitive encryption data and returns a generic error
-func SetEncryptionError(requestParams *encryption.EncryptRequest, err error, status uint) error {
+func SetEncryptionError(requestParams *encryption.EncryptRequest, err error, status uint) (error, error) {
 	genericError := getGenericErrorByStatus(status)
 	if requestParams != nil {
 		for i := 0; i < len(requestParams.EncryptRequestData); i++ {
@@ -48,11 +48,11 @@ func SetEncryptionError(requestParams *encryption.EncryptRequest, err error, sta
 			requestParams.EncryptRequestData[i].Salt = ""
 		}
 		logging.GetLogger().Error(genericError.Error(), zap.Error(err), zap.Any("encryptionRequest", &requestParams))
-		return genericError
+		return genericError, err
 	}
 	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
 
-	return genericError
+	return genericError, err
 }
 
 // SetValidationEmptyError sets an empty error
@@ -94,7 +94,7 @@ func RenderUpdateMetadataErrorResponse(w http.ResponseWriter, req *http.Request,
 }
 
 //SetDecryptionError logs non sensitive encryption data and returns a generic error
-func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, status uint) error {
+func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, status uint) (error, error) {
 	genericError := getGenericErrorByStatus(status)
 	if requestParams != nil {
 		for i := 0; i < len(requestParams.DecryptRequestData); i++ {
@@ -102,10 +102,10 @@ func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, sta
 			requestParams.DecryptRequestData[i].Token = ""
 		}
 		logging.GetLogger().Error(genericError.Error(), zap.Error(err), zap.Any("decryptionRequest", &requestParams))
-		return genericError
+		return genericError, err
 	}
 	logging.GetLogger().Error(genericError.Error(), zap.Error(err))
-	return genericError
+	return genericError, err
 }
 
 // SetMetadataError logs non sensitive metadata related information and returns a generic error

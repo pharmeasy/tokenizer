@@ -29,8 +29,8 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	appDTxnId := appD.StartBT("v1/encrypt")
 	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
-		err = errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusBadRequest, err)
 		return
@@ -39,8 +39,8 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	// validate identifier
 	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthenticated {
-		err = errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden, err)
 		return
@@ -49,8 +49,8 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	// authorize encryption levels
 	isAuthorized := identity.AuthorizeLevelForEncryption(requestParams)
 	if !isAuthorized {
-		err = errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden, err)
 		return
@@ -58,8 +58,8 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	// encrypt data
 	encryptedData, err := encryptTokenData(requestParams, c, req.Context())
 	if err != nil {
-		err = errormanager.SetEncryptionError(requestParams, err, http.StatusInternalServerError)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetEncryptionError(requestParams, err, http.StatusInternalServerError)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusInternalServerError, err)
 		return
@@ -73,8 +73,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
-		err = errormanager.SetDecryptionError(requestParams, err, http.StatusBadRequest)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetDecryptionError(requestParams, err, http.StatusBadRequest)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusBadRequest, err)
 		return
@@ -83,8 +83,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// validate identifier
 	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthenticated {
-		err = errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden, err)
 		return
@@ -93,8 +93,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// fetch records
 	tokenData, err := getTokenData(requestParams, c)
 	if err != nil {
-		err = errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError, err)
 		return
@@ -103,8 +103,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	// authorize token access
 	isAuthorized := identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)
 	if !isAuthorized {
-		err = errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden, err)
 
@@ -112,8 +112,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 	}
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
-		err = errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError)
-		appD.LogFatalBTError(err, appDTxnId)
+		err, detailedError := errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError)
+		appD.LogFatalBTError(detailedError, appDTxnId)
 
 		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError, err)
 		return
