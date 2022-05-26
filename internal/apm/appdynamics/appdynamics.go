@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/lib/apm/appdynamics"
+	"github.com/google/uuid"
 )
 
 func InitAppDynamics(cfg *config.TokenizerConfig) {
@@ -70,4 +71,23 @@ func RunBTs() {
 
 	// Stop/Clean up the AppD SDK.
 	appdynamics.TerminateSDK()
+}
+
+func StartBT(transaction string) string {
+	bt := appdynamics.StartBT(transaction, "")
+	txUUID := uuid.New().String()
+	appdynamics.StoreBT(bt, txUUID)
+
+	return txUUID
+}
+
+func LogFatalBTError(err error, appDTxnId string) {
+	bt := appdynamics.GetBT(appDTxnId)
+	appdynamics.AddBTError(bt, appdynamics.APPD_LEVEL_ERROR, err.Error(), true)
+	appdynamics.EndBT(bt)
+}
+
+func EndBT(appDTxnId string) {
+	bt := appdynamics.GetBT(appDTxnId)
+	appdynamics.EndBT(bt)
 }

@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/render"
+	appD "bitbucket.org/pharmaeasyteam/tokenizer/internal/apm/appdynamics"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/identity"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
@@ -17,92 +18,107 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/validator"
-	"bitbucket.org/pharmaeasyteam/tokenizer/lib/apm/appdynamics"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
-
+	appDTxnId := appD.StartBT("v1/encrypt")
 	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
-		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusBadRequest,
-			errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest))
+		err = errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	// validate identifier
 	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthenticated {
-		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden,
-			errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden))
+		err = errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden, err)
 		return
 	}
 
 	// authorize encryption levels
 	isAuthorized := identity.AuthorizeLevelForEncryption(requestParams)
 	if !isAuthorized {
-		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden,
-			errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden))
+		err = errormanager.SetEncryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusForbidden, err)
 		return
 	}
 	// encrypt data
 	encryptedData, err := encryptTokenData(requestParams, c, req.Context())
 	if err != nil {
-		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusInternalServerError,
-			errormanager.SetEncryptionError(requestParams, err, http.StatusInternalServerError))
+		err = errormanager.SetEncryptionError(requestParams, err, http.StatusInternalServerError)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderEncryptionErrorResponse(w, req, http.StatusInternalServerError, err)
 		return
 	}
+	appD.EndBT(appDTxnId)
 	render.JSON(w, req, encryptedData)
 }
 
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
-	addAppDTx := appdynamics.StartBT("v1-decrypt", "")
-	txUUID := uuid.New().String()
-	appdynamics.StoreBT(addAppDTx, txUUID)
+	appDTxnId := appD.StartBT("v1/decrypt")
 
 	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
-		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusBadRequest,
-			errormanager.SetDecryptionError(requestParams, err, http.StatusBadRequest))
+		err = errormanager.SetDecryptionError(requestParams, err, http.StatusBadRequest)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	// validate identifier
 	isAuthenticated := identity.AuthenticateRequest(requestParams.Identifier)
 	if !isAuthenticated {
-		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
-			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
+		err = errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden, err)
 		return
 	}
 
 	// fetch records
 	tokenData, err := getTokenData(requestParams, c)
 	if err != nil {
-		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
-			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
+		err = errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError, err)
 		return
 	}
 
 	// authorize token access
 	isAuthorized := identity.AuthorizeTokenAccess(tokenData, requestParams.Identifier)
 	if !isAuthorized {
-		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden,
-			errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden))
+		err = errormanager.SetDecryptionError(requestParams, nil, http.StatusForbidden)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusForbidden, err)
 
 		return
 	}
 	decryptedData, err := decryptTokenData(tokenData, requestParams)
 	if err != nil {
-		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError,
-			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
+		err = errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError)
+		appD.LogFatalBTError(err, appDTxnId)
+
+		errormanager.RenderDecryptionErrorResponse(w, req, http.StatusInternalServerError, err)
 		return
 	}
-	appdynamics.EndBT(addAppDTx)
+	appD.EndBT(appDTxnId)
 
 	render.JSON(w, req, decryptedData)
 
