@@ -3,13 +3,13 @@ package apm
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"bitbucket.org/pharmaeasyteam/tokenizer/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/lib/apm/appdynamics"
 	"github.com/google/uuid"
 )
 
+// InitAppDynamics sets the configs from vault and env and starts AppDynamics
 func InitAppDynamics(cfg *config.TokenizerConfig) {
 
 	vaultConfig := cfg.VaultModule.AppDynamicsConfig
@@ -28,15 +28,6 @@ func InitAppDynamics(cfg *config.TokenizerConfig) {
 	appDconfig.AppName = vaultConfig.AppName
 	appDconfig.TierName = vaultConfig.TierName
 	appDconfig.NodeName = os.Getenv("APPDYNAMICS_AGENT_NODE_NAME")
-
-	fmt.Printf("printing env variables..")
-	fmt.Printf("Host:" + appDconfig.Controller.Host)
-	fmt.Printf("Account:" + appDconfig.Controller.Account)
-	fmt.Printf("AppName:" + appDconfig.AppName)
-	fmt.Printf("TierName:" + appDconfig.TierName)
-	fmt.Printf("Host:" + appDconfig.NodeName)
-
-	// misc
 	appDconfig.InitTimeoutMs = 1000
 
 	// init the SDK
@@ -48,31 +39,8 @@ func InitAppDynamics(cfg *config.TokenizerConfig) {
 	}
 }
 
-func RunBTs() {
-	// Run some BTs
-	maxBtCount := 20000
-	btCount := 0
-
-	fmt.Print("Doing something")
-	for btCount < maxBtCount {
-		// start the "Checkout" transaction
-		btHandle := appdynamics.StartBT("MyTestGolangBT", "")
-
-		// do something....
-		fmt.Print(".")
-		milliseconds := 250
-		time.Sleep(time.Duration(milliseconds) * time.Millisecond)
-
-		// end the transaction
-		appdynamics.EndBT(btHandle)
-
-	}
-	fmt.Print("\n")
-
-	// Stop/Clean up the AppD SDK.
-	appdynamics.TerminateSDK()
-}
-
+// StartBT starts the AppD Business transaction, creates a UUID
+// and stores it for future reference
 func StartBT(transaction string) string {
 	bt := appdynamics.StartBT(transaction, "")
 	txUUID := uuid.New().String()
@@ -81,12 +49,21 @@ func StartBT(transaction string) string {
 	return txUUID
 }
 
+// LogFatalBTError logs a business transaction error and ends the transaction
 func LogFatalBTError(err error, appDTxnId string) {
 	bt := appdynamics.GetBT(appDTxnId)
 	appdynamics.AddBTError(bt, appdynamics.APPD_LEVEL_ERROR, err.Error(), true)
 	appdynamics.EndBT(bt)
 }
 
+// LogFatalBTErrorMessage is the same as LogFatalBTError but it accepts the error as string
+func LogFatalBTErrorMessage(err string, appDTxnId string) {
+	bt := appdynamics.GetBT(appDTxnId)
+	appdynamics.AddBTError(bt, appdynamics.APPD_LEVEL_ERROR, err, true)
+	appdynamics.EndBT(bt)
+}
+
+// EndBT fetches the stored business transaction and ends it
 func EndBT(appDTxnId string) {
 	bt := appdynamics.GetBT(appDTxnId)
 	appdynamics.EndBT(bt)
