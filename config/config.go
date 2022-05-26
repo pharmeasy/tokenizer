@@ -89,13 +89,13 @@ func InitViper(viper *viper.Viper) {
 	// setting AppD configs
 	viper.SetDefault("VaultModule.AppDynamicsConfig.AppName", "")
 	viper.SetDefault("VaultModule.AppDynamicsConfig.TierName", "")
-	viper.SetDefault("VaultModule.AppDynamicsConfig.NodeName", "")
+	// viper.SetDefault("VaultModule.AppDynamicsConfig.NodeName", "")
 	viper.SetDefault("VaultModule.AppDynamicsConfig.InitTimeoutMs", "")
 	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.Host", "")
 	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.Port", "")
 	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.UseSSL", "")
 	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.Account", "")
-	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.AccessKey", "")
+	// viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.AccessKey", "")
 
 }
 
