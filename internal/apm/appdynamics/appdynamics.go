@@ -28,6 +28,13 @@ func InitAppDynamics(cfg *config.TokenizerConfig) {
 	appDconfig.TierName = vaultConfig.TierName
 	appDconfig.NodeName = os.Getenv("APPDYNAMICS_AGENT_NODE_NAME")
 
+	fmt.Printf("printing env variables..")
+	fmt.Printf("Host:" + appDconfig.Controller.Host)
+	fmt.Printf("Account:" + appDconfig.Controller.Account)
+	fmt.Printf("AppName:" + appDconfig.AppName)
+	fmt.Printf("TierName:" + appDconfig.TierName)
+	fmt.Printf("Host:" + appDconfig.NodeName)
+
 	// misc
 	appDconfig.InitTimeoutMs = 1000
 

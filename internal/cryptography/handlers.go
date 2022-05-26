@@ -17,10 +17,12 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/validator"
+	"bitbucket.org/pharmaeasyteam/tokenizer/lib/apm/appdynamics"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -59,6 +61,9 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 }
 
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
+	addAppDTx := appdynamics.StartBT("v1-decrypt", "")
+	txUUID := uuid.New().String()
+	appdynamics.StoreBT(addAppDTx, txUUID)
 
 	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
@@ -97,6 +102,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 			errormanager.SetDecryptionError(requestParams, err, http.StatusInternalServerError))
 		return
 	}
+	appdynamics.EndBT(addAppDTx)
+
 	render.JSON(w, req, decryptedData)
 
 }
