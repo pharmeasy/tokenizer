@@ -33,7 +33,10 @@ RUN CGO_ENABLED=1 GOOS=linux go build -o /tokenizer/tokenizer
 FROM ubuntu:18.04
 COPY --from=builder /tokenizer /go/bin/tokenizer
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder usr/local/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
+
 RUN apt update
+ENV LD_LIBRARY_PATH "/usr/local/lib"
 
 EXPOSE 8083
 ENTRYPOINT ["/go/bin/tokenizer/tokenizer", "start"]
