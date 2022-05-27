@@ -1,0 +1,14 @@
+env: logistics-production
+project_name: tokenizer
+prefix: prod
+namespace: "{{ project_name }}-{{ prefix }}"
+fqdn: "tokenizer.internal.production.k8s.mercuryonline.co"
+tag: "{{ prefix }}-{{ build_number }}"
+context: bolt-prod
+env_during_build: True
+min_replicas: 5
+max_replicas: 20
+profile: default
+iamrole: K8sRoleTokenizerProd
+ambassador_id: logistics-ambassador-production
+account_number: "451964786384"

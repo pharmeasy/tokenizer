@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::127603365779:role/{{ iamrole }}
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ account_number }}:role/{{ iamrole }}
   name: {{ project_name }}-sa
   namespace: {{ namespace }}
 --- 
@@ -43,7 +43,7 @@ spec:
             topologyKey: "kubernetes.io/hostname"
       containers:
         - name: {{ project_name }}
-          image: "127603365779.dkr.ecr.ap-south-1.amazonaws.com/{{ project_name }}:{{ tag }}"
+          image: "{{ account_number }}.dkr.ecr.ap-south-1.amazonaws.com/{{ project_name }}:{{ tag }}"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8083
@@ -113,6 +113,7 @@ metadata:
 spec:
   bypass_auth: true
   host: {{ fqdn }}
+  ambassador_id: {{ ambassador_id }}
   prefix: /
   service: {{ prefix }}-{{ project_name }}-service.{{ namespace }}:8083
   timeout_ms: 10000
