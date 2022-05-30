@@ -70,6 +70,16 @@ spec:
           envFrom:
           - secretRef:
               name: "{{ prefix }}-{{ project_name }}"
+          env:
+            - name: APPDYNAMICS_AGENT_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cluster-agent-secret
+                  key: controller-key
           resources:
             limits:
               cpu: '1'

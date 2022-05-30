@@ -3,13 +3,13 @@ package cryptography
 import (
 	"context"
 
+	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
+	"bitbucket.org/pharmaeasyteam/tokenizer/config"
+	appD "bitbucket.org/pharmaeasyteam/tokenizer/internal/apm/appdynamics"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
-
-	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
-	"bitbucket.org/pharmaeasyteam/tokenizer/config"
 )
 
 //ModuleCrypto ...
@@ -36,4 +36,5 @@ func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 		ms.config.VaultModule.KeysetConfig.KeysetName4: ms.config.VaultModule.KeysetConfig.KeysetValue4,
 	})
 	tokenmanager.LoadInstanceIDFromConfig(ms.config.VaultModule.TokenConfig.InstanceID)
+	appD.InitAppDynamics(ms.config)
 }
