@@ -15,10 +15,11 @@ type TokenizerConfig struct {
 
 // VaultModule is used to load env variables from vault
 type VaultModule struct {
-	KeysetConfig KeysetConfig
-	KMSConfig    KMSConfig
-	DynamoConfig DynamoConfig
-	TokenConfig  TokenConfig
+	KeysetConfig      KeysetConfig
+	KMSConfig         KMSConfig
+	DynamoConfig      DynamoConfig
+	TokenConfig       TokenConfig
+	AppDynamicsConfig AppDynamicsConfig
 }
 
 // KeysetConfig is used to set keysets from vault
@@ -48,6 +49,24 @@ type TokenConfig struct {
 	InstanceID string
 }
 
+// AppDynamicsConfig is used to set Appdynamics SDK from vault
+type AppDynamicsConfig struct {
+	AppName                     string
+	TierName                    string
+	NodeName                    string
+	InitTimeoutMs               int
+	AppDynamicsConfigController AppDynamicsConfigController
+}
+
+// AppDynamicsConfigController is used to set Appdynamics SDK from vault
+type AppDynamicsConfigController struct {
+	Host      string
+	Port      uint16
+	UseSSL    bool
+	Account   string
+	AccessKey string
+}
+
 //InitViper viper initialisation
 func InitViper(viper *viper.Viper) {
 
@@ -66,6 +85,16 @@ func InitViper(viper *viper.Viper) {
 	viper.SetDefault("VaultModule.KMSConfig.AWSKMSKey", "")
 	viper.SetDefault("VaultModule.DynamoConfig.DynamoDBTableName", "")
 	viper.SetDefault("VaultModule.TokenConfig.InstanceID", "")
+
+	// setting AppD configs
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AppName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.TierName", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.InitTimeoutMs", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.Host", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.Port", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.UseSSL", "")
+	viper.SetDefault("VaultModule.AppDynamicsConfig.AppDynamicsConfigController.Account", "")
+
 }
 
 //Load Load configuration variables from file

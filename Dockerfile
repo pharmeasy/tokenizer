@@ -1,37 +1,42 @@
-FROM golang:1.14.4-alpine3.11 AS builder
+FROM golang:1.13.0 AS builder
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /etc/ssh/
-RUN apk -v --update add \
-        python \
-        py-pip \
-        groff \
-        less \
-        mailcap \
-        && \
-    pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
-    apk -v --purge del py-pip && \
-    rm /var/cache/apk/*
-COPY id_rsa /root/.ssh/id_rsa
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        python3-setuptools \
+    && pip3 install --upgrade pip \
+    && apt-get clean
 
-RUN apk add --update git openssh-client && \
-chmod 600 /root/.ssh/id_rsa && \
+RUN pip3 --no-cache-dir install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic
+COPY id_rsa /root/.ssh/id_rsa
+COPY ./lib/apm/appdynamics/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
+
+RUN apt-get install -y openssh-client &&\
+      apt-get install -y git
+RUN chmod 600 /root/.ssh/id_rsa && \
   eval $(ssh-agent) && \
-  echo -e "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
+  echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
   ssh-add /root/.ssh/id_rsa
 
-RUN apk update && apk add --no-cache git
-
 RUN git config --global url."git@bitbucket.org:".insteadOf "https://bitbucket.org/"
-
-RUN apk --no-cache add ca-certificates
+RUN apt-get install -y ca-certificates
 
 WORKDIR /tokenizer
 COPY . .
 RUN go get -d -v
-RUN CGO_ENABLED=0 GOOS=linux go build -o /tokenizer/tokenizer
-FROM scratch
+RUN CGO_ENABLED=1 GOOS=linux go build -o /tokenizer/tokenizer
+
+
+
+FROM ubuntu:18.04
 COPY --from=builder /tokenizer /go/bin/tokenizer
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder usr/local/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
+
+RUN apt update
+ENV LD_LIBRARY_PATH "/usr/local/lib"
 
 EXPOSE 8083
 ENTRYPOINT ["/go/bin/tokenizer/tokenizer", "start"]

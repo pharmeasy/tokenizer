@@ -10,8 +10,6 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/json-iterator/go v1.1.7
 	github.com/magiconair/properties v1.8.0
-	github.com/newrelic/go-agent v3.9.0+incompatible
-	github.com/newrelic/go-agent/v3 v3.6.0
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
