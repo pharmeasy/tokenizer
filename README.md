@@ -27,3 +27,7 @@ This README would normally document whatever steps are necessary to get your app
 
 * Repo owner or admin
 * Other community or team contact
+
+Commands:
+Build docker image:
+docker build -t tokenizer . 
