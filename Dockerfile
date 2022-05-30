@@ -17,7 +17,7 @@ RUN apt-get install -y openssh-client &&\
       apt-get install -y git
 RUN chmod 600 /root/.ssh/id_rsa && \
   eval $(ssh-agent) && \
-  echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
+  echo -e "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
   ssh-add /root/.ssh/id_rsa
 
 RUN git config --global url."git@bitbucket.org:".insteadOf "https://bitbucket.org/"
