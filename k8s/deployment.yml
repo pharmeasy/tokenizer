@@ -71,6 +71,8 @@ spec:
           - secretRef:
               name: "{{ prefix }}-{{ project_name }}"
           env:
+            - name: env
+              value: {{env}}
             - name: APPDYNAMICS_AGENT_NODE_NAME
               valueFrom:
                 fieldRef:

@@ -12,6 +12,19 @@ import (
 // InitAppDynamics sets the configs from vault and env and starts AppDynamics
 func InitAppDynamics(cfg *config.TokenizerConfig) {
 
+	env := os.Getenv("env")
+	if len(env) == 0 {
+		fmt.Printf("Env not set. Not initializing the AppDynamics SDK\n")
+		return
+	}
+
+	if env == "development" {
+		fmt.Printf("Not initializing the AppDynamics SDK on development environment.\n")
+		return
+	}
+
+	fmt.Printf("Initializing the AppDynamics SDK on " + env + " environment...\n")
+
 	vaultConfig := cfg.VaultModule.AppDynamicsConfig
 
 	// Configure AppD
