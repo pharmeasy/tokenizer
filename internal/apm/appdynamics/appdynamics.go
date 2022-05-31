@@ -23,6 +23,8 @@ func InitAppDynamics(cfg *config.TokenizerConfig) {
 		return
 	}
 
+	fmt.Printf("Initializing the AppDynamics SDK on " + env + " environment...\n")
+
 	vaultConfig := cfg.VaultModule.AppDynamicsConfig
 
 	// Configure AppD
