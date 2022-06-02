@@ -1,6 +1,6 @@
 # refer to tokenizer-base-20220601-DockerFile for building on local machine
-FROM 451964786384.dkr.ecr.ap-south-1.amazonaws.com/tokenizer-base:20220601 AS builder
-
+ARG  TOKENIZER_BASE=latest
+FROM ${TOKENIZER_BASE}  AS builder
 COPY id_rsa /root/.ssh/id_rsa
 COPY ./lib/apm/appdynamics/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
 

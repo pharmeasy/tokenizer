@@ -2,8 +2,10 @@
 # This is the base image used for the first stage build for docker
 # The image was prebuilt and fetched from ECR as it requires http based packages from debian
 # which was insecure and not allowed by the firewall
+# the docker build command sets the arg based on the env so that the respective ECR is used
+# to build the image (this is set at the jenkins build level)
 # to build the project locally, build the above image and fetch from local docker
-# or replace the first line of the dockerfile with the lines mentioned below
+# or replace the first two lines of the dockerfile with the lines mentioned below
 # since the access to the ECR image is not permitted on local machines
 FROM golang:1.13.0 AS builder
 RUN mkdir -p /root/.ssh
