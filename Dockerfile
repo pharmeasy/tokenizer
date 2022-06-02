@@ -1,6 +1,4 @@
-# refer to tokenizer-base-20220601-DockerFile for building on local machine
-ARG  TOKENIZER_BASE=latest
-FROM ${TOKENIZER_BASE}  AS builder
+# The FROM variable will be dynamically fetched via jenkins 
 COPY id_rsa /root/.ssh/id_rsa
 COPY ./lib/apm/appdynamics/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
 
