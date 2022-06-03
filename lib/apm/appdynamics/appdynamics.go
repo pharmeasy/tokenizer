@@ -30,9 +30,9 @@ uintptr_t contexthandle_to_uint(struct appd_context_config* context) {
 import "C"
 
 import (
-	"errors"
-	"fmt"
-	"unsafe"
+    "errors"
+    "fmt"
+    "unsafe"
 )
 
 // The required name of the correlation header.
@@ -83,89 +83,89 @@ type ExitcallHandle uint64
 type BtHandle uint64
 
 type Config struct {
-	AppName, TierName, NodeName string
+    AppName, TierName, NodeName string
 
-	Controller Controller
-	Logging    LoggingConfig
+    Controller Controller
+    Logging LoggingConfig
 
-	/*
-	 * Set to true if you want the SDK to check for configuration in the
-	 * environment on init. Note that because this happens on init, the
-	 * environment settings override whatever configuration you set in
-	 * your program.
-	 *
-	 * See the documentation for appd_config_getenv in the C/C++ SDK
-	 * for more information.
-	 */
-	UseConfigFromEnv bool
+    /*
+     * Set to true if you want the SDK to check for configuration in the
+     * environment on init. Note that because this happens on init, the
+     * environment settings override whatever configuration you set in
+     * your program.
+     *
+     * See the documentation for appd_config_getenv in the C/C++ SDK
+     * for more information.
+     */
+    UseConfigFromEnv bool
 
-	/*
-	 * If UseConfigFromEnv is set, this specifies the prefix to use for
-	 * environment variable names. If UseConfigFromEnv is true and this
-	 * is empty, then the default (APPD_SDK) is used.
-	 *
-	 * See the documentation for appd_config_getenv in the C/C++ SDK
-	 * for more information.
-	 */
-	EnvVarPrefix string
+    /*
+     * If UseConfigFromEnv is set, this specifies the prefix to use for
+     * environment variable names. If UseConfigFromEnv is true and this
+     * is empty, then the default (APPD_SDK) is used.
+     *
+     * See the documentation for appd_config_getenv in the C/C++ SDK
+     * for more information.
+     */
+    EnvVarPrefix string
 
-	/*
-	 * appd_sdk_init relies on controller configuration to start business
-	 * transactions. This is an asynchronous action so that InitSDK does
-	 * not block your program. This Config field allows you to instruct
-	 * InitSDK to wait for up to InitTimeoutMs milliseconds and
-	 * wait until it has received controller configuration and is ready to
-	 * capture BTs.
-	 *
-	 * X  : Wait up to X milliseconds for controller configuration.
-	 * 0  : Do not wait for controller configuration.
-	 * -1 : Wait indefinitely until controller configuration is received by agent
-	 */
-	InitTimeoutMs int
+    /*
+     * appd_sdk_init relies on controller configuration to start business
+     * transactions. This is an asynchronous action so that InitSDK does
+     * not block your program. This Config field allows you to instruct
+     * InitSDK to wait for up to InitTimeoutMs milliseconds and
+     * wait until it has received controller configuration and is ready to
+     * capture BTs.
+     *
+     * X  : Wait up to X milliseconds for controller configuration.
+     * 0  : Do not wait for controller configuration.
+     * -1 : Wait indefinitely until controller configuration is received by agent
+     */
+    InitTimeoutMs int
 }
 
 type Controller struct {
-	Host                            string
-	Port                            uint16
-	Account, AccessKey              string
-	UseSSL                          bool
-	CertificateFile, CertificateDir string
+    Host                            string
+    Port                            uint16
+    Account, AccessKey              string
+    UseSSL                          bool
+    CertificateFile, CertificateDir string
 
-	HTTPProxy HTTPProxy
+    HTTPProxy HTTPProxy
 }
 
 type HTTPProxy struct {
-	Host                   string
-	Port                   uint16
-	Username, PasswordFile string
+    Host                   string
+    Port                   uint16
+    Username, PasswordFile string
 }
 
 type LogLevel int
 
 const (
-	APPD_LOG_LEVEL_DEFAULT LogLevel = iota
-	APPD_LOG_LEVEL_TRACE
-	APPD_LOG_LEVEL_DEBUG
-	APPD_LOG_LEVEL_INFO
-	APPD_LOG_LEVEL_WARN
-	APPD_LOG_LEVEL_ERROR
-	APPD_LOG_LEVEL_FATAL
+    APPD_LOG_LEVEL_DEFAULT LogLevel = iota
+    APPD_LOG_LEVEL_TRACE
+    APPD_LOG_LEVEL_DEBUG
+    APPD_LOG_LEVEL_INFO
+    APPD_LOG_LEVEL_WARN
+    APPD_LOG_LEVEL_ERROR
+    APPD_LOG_LEVEL_FATAL
 )
 
 type LoggingConfig struct {
-	BaseDir          string
-	MinimumLevel     LogLevel
-	MaxNumFiles      uint
-	MaxFileSizeBytes uint
+    BaseDir             string
+    MinimumLevel        LogLevel
+    MaxNumFiles         uint
+    MaxFileSizeBytes    uint
 }
 
 /**
  * Configuration of an application context (tenant) for the SDK.
  */
 type ContextConfig struct {
-	AppName  string
-	TierName string
-	NodeName string
+    AppName  string
+    TierName string
+    NodeName string
 }
 
 // Error levels for passing to AddBTError() and
@@ -173,166 +173,167 @@ type ContextConfig struct {
 type ErrorLevel int
 
 const (
-	APPD_LEVEL_NOTICE ErrorLevel = iota
-	APPD_LEVEL_WARNING
-	APPD_LEVEL_ERROR
+    APPD_LEVEL_NOTICE ErrorLevel = iota
+    APPD_LEVEL_WARNING
+    APPD_LEVEL_ERROR
 )
 
 // Valid backend types to pass to AddBackend()
 const (
-	APPD_BACKEND_HTTP       = "HTTP"
-	APPD_BACKEND_DB         = "DB"
-	APPD_BACKEND_CACHE      = "CACHE"
-	APPD_BACKEND_RABBITMQ   = "RABBITMQ"
-	APPD_BACKEND_WEBSERVICE = "WEBSERVICE"
-	APPD_BACKEND_JMS        = "JMS"
+    APPD_BACKEND_HTTP       = "HTTP"
+    APPD_BACKEND_DB         = "DB"
+    APPD_BACKEND_CACHE      = "CACHE"
+    APPD_BACKEND_RABBITMQ   = "RABBITMQ"
+    APPD_BACKEND_WEBSERVICE = "WEBSERVICE"
+    APPD_BACKEND_JMS        = "JMS"
 )
 
 // Converts the Golang Config struct to the C appd_config struct equivalent
 func marshalConfig(from *Config) *C.struct_appd_config {
-	to := C.appd_config_init()
+    to := C.appd_config_init()
 
-	app_name := C.CString(from.AppName)
-	tier_name := C.CString(from.TierName)
-	node_name := C.CString(from.NodeName)
-	controller_host := C.CString(from.Controller.Host)
-	controller_account := C.CString(from.Controller.Account)
-	controller_access_key := C.CString(from.Controller.AccessKey)
-	controller_certificate_file := C.CString(from.Controller.CertificateFile)
-	controller_certificate_dir := C.CString(from.Controller.CertificateDir)
+    app_name := C.CString(from.AppName)
+    tier_name := C.CString(from.TierName)
+    node_name := C.CString(from.NodeName)
+    controller_host := C.CString(from.Controller.Host)
+    controller_account := C.CString(from.Controller.Account)
+    controller_access_key := C.CString(from.Controller.AccessKey)
+    controller_certificate_file := C.CString(from.Controller.CertificateFile)
+    controller_certificate_dir := C.CString(from.Controller.CertificateDir)
 
-	defer C.free(unsafe.Pointer(app_name))
-	defer C.free(unsafe.Pointer(tier_name))
-	defer C.free(unsafe.Pointer(node_name))
-	defer C.free(unsafe.Pointer(controller_host))
-	defer C.free(unsafe.Pointer(controller_account))
-	defer C.free(unsafe.Pointer(controller_access_key))
-	defer C.free(unsafe.Pointer(controller_certificate_file))
-	defer C.free(unsafe.Pointer(controller_certificate_dir))
+    defer C.free(unsafe.Pointer(app_name))
+    defer C.free(unsafe.Pointer(tier_name))
+    defer C.free(unsafe.Pointer(node_name))
+    defer C.free(unsafe.Pointer(controller_host))
+    defer C.free(unsafe.Pointer(controller_account))
+    defer C.free(unsafe.Pointer(controller_access_key))
+    defer C.free(unsafe.Pointer(controller_certificate_file))
+    defer C.free(unsafe.Pointer(controller_certificate_dir))
 
-	C.appd_config_set_app_name(to, app_name)
-	C.appd_config_set_tier_name(to, tier_name)
-	C.appd_config_set_node_name(to, node_name)
-	C.appd_config_set_controller_host(to, controller_host)
-	C.appd_config_set_controller_port(to, C.ushort(from.Controller.Port))
-	C.appd_config_set_controller_account(to, controller_account)
-	C.appd_config_set_controller_access_key(to, controller_access_key)
+    C.appd_config_set_app_name(to, app_name)
+    C.appd_config_set_tier_name(to, tier_name)
+    C.appd_config_set_node_name(to, node_name)
+    C.appd_config_set_controller_host(to, controller_host)
+    C.appd_config_set_controller_port(to, C.ushort(from.Controller.Port))
+    C.appd_config_set_controller_account(to, controller_account)
+    C.appd_config_set_controller_access_key(to, controller_access_key)
 
-	if from.Controller.UseSSL {
-		C.appd_config_set_controller_use_ssl(to, 1)
-	} else {
-		C.appd_config_set_controller_use_ssl(to, 0)
-	}
+    if from.Controller.UseSSL {
+        C.appd_config_set_controller_use_ssl(to, 1)
+    } else {
+        C.appd_config_set_controller_use_ssl(to, 0)
+    }
 
-	if len(from.Controller.CertificateDir) != 0 {
-		C.appd_config_set_controller_certificate_dir(to, controller_certificate_dir)
-	}
+    if len(from.Controller.CertificateDir) != 0 {
+        C.appd_config_set_controller_certificate_dir(to, controller_certificate_dir)
+    }
 
-	if len(from.Controller.CertificateFile) != 0 {
-		C.appd_config_set_controller_certificate_file(to, controller_certificate_file)
-	}
+    if len(from.Controller.CertificateFile) != 0 {
+        C.appd_config_set_controller_certificate_file(to, controller_certificate_file)
+    }
 
-	if len(from.Controller.HTTPProxy.Host) != 0 {
-		controller_http_proxy_host := C.CString(from.Controller.HTTPProxy.Host)
-		defer C.free(unsafe.Pointer(controller_http_proxy_host))
-		controller_http_proxy_username := C.CString(from.Controller.HTTPProxy.Username)
-		defer C.free(unsafe.Pointer(controller_http_proxy_username))
-		controller_http_proxy_password_file := C.CString(from.Controller.HTTPProxy.PasswordFile)
-		defer C.free(unsafe.Pointer(controller_http_proxy_password_file))
+    if len(from.Controller.HTTPProxy.Host) != 0 {
+        controller_http_proxy_host := C.CString(from.Controller.HTTPProxy.Host)
+        defer C.free(unsafe.Pointer(controller_http_proxy_host))
+        controller_http_proxy_username := C.CString(from.Controller.HTTPProxy.Username)
+        defer C.free(unsafe.Pointer(controller_http_proxy_username ))
+        controller_http_proxy_password_file := C.CString(from.Controller.HTTPProxy.PasswordFile)
+        defer C.free(unsafe.Pointer(controller_http_proxy_password_file))
 
-		C.appd_config_set_controller_http_proxy_host(to, controller_http_proxy_host)
-		C.appd_config_set_controller_http_proxy_port(to, C.ushort(from.Controller.HTTPProxy.Port))
-		C.appd_config_set_controller_http_proxy_username(to, controller_http_proxy_username)
-		C.appd_config_set_controller_http_proxy_password_file(to, controller_http_proxy_password_file)
-	}
+        C.appd_config_set_controller_http_proxy_host(to, controller_http_proxy_host)
+        C.appd_config_set_controller_http_proxy_port(to, C.ushort(from.Controller.HTTPProxy.Port))
+        C.appd_config_set_controller_http_proxy_username(to, controller_http_proxy_username)
+        C.appd_config_set_controller_http_proxy_password_file(to, controller_http_proxy_password_file)
+    }
 
-	switch from.Logging.MinimumLevel {
-	case APPD_LOG_LEVEL_DEBUG:
-		C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_DEBUG)
-	case APPD_LOG_LEVEL_TRACE:
-		C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_TRACE)
-	case APPD_LOG_LEVEL_INFO:
-		C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_INFO)
-	case APPD_LOG_LEVEL_WARN:
-		C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_WARN)
-	case APPD_LOG_LEVEL_ERROR:
-		C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_ERROR)
-	case APPD_LOG_LEVEL_FATAL:
-		C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_FATAL)
-	}
 
-	if len(from.Logging.BaseDir) != 0 {
-		logging_log_dir := C.CString(from.Logging.BaseDir)
-		defer C.free(unsafe.Pointer(logging_log_dir))
+    switch from.Logging.MinimumLevel {
+    case APPD_LOG_LEVEL_DEBUG:
+        C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_DEBUG)
+    case APPD_LOG_LEVEL_TRACE:
+        C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_TRACE)
+    case APPD_LOG_LEVEL_INFO:
+        C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_INFO)
+    case APPD_LOG_LEVEL_WARN:
+        C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_WARN)
+    case APPD_LOG_LEVEL_ERROR:
+        C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_ERROR)
+    case APPD_LOG_LEVEL_FATAL:
+        C.appd_config_set_logging_min_level(to, C.APPD_LOG_LEVEL_FATAL)
+    }
 
-		C.appd_config_set_logging_log_dir(to, logging_log_dir)
-	}
+    if len(from.Logging.BaseDir) != 0 {
+        logging_log_dir := C.CString(from.Logging.BaseDir)
+        defer C.free(unsafe.Pointer(logging_log_dir))
 
-	if from.Logging.MaxNumFiles != 0 {
-		C.appd_config_set_logging_max_num_files(to, C.uint(from.Logging.MaxNumFiles))
-	}
+        C.appd_config_set_logging_log_dir(to, logging_log_dir)
+    }
 
-	if from.Logging.MaxFileSizeBytes != 0 {
-		C.appd_config_set_logging_max_file_size_bytes(to, C.uint(from.Logging.MaxFileSizeBytes))
-	}
+    if from.Logging.MaxNumFiles != 0 {
+        C.appd_config_set_logging_max_num_files(to, C.uint(from.Logging.MaxNumFiles))
+    }
 
-	C.appd_config_set_init_timeout_ms(to, C.int(from.InitTimeoutMs))
+    if from.Logging.MaxFileSizeBytes != 0 {
+        C.appd_config_set_logging_max_file_size_bytes(to, C.uint(from.Logging.MaxFileSizeBytes))
+    }
 
-	return to
+    C.appd_config_set_init_timeout_ms(to, C.int(from.InitTimeoutMs))
+
+    return to
 }
 
 // Add application context to AppDynamics configuration for multi-tenancy.
 func AddAppContextToConfig(cfg *Config, context string, contextCfg *ContextConfig) error {
-	cs := C.CString(context)
-	defer C.free(unsafe.Pointer(cs))
+    cs := C.CString(context)
+    defer C.free(unsafe.Pointer(cs))
 
-	app_name := C.CString(contextCfg.AppName)
-	tier_name := C.CString(contextCfg.TierName)
-	node_name := C.CString(contextCfg.NodeName)
-	defer C.free(unsafe.Pointer(app_name))
-	defer C.free(unsafe.Pointer(tier_name))
-	defer C.free(unsafe.Pointer(node_name))
+    app_name := C.CString(contextCfg.AppName)
+    tier_name := C.CString(contextCfg.TierName)
+    node_name := C.CString(contextCfg.NodeName)
+    defer C.free(unsafe.Pointer(app_name))
+    defer C.free(unsafe.Pointer(tier_name))
+    defer C.free(unsafe.Pointer(node_name))
 
-	c_contextCfg := C.appd_context_config_init(cs)
-	if C.contexthandle_to_uint(c_contextCfg) == 0 {
-		return nil
-	}
-	C.appd_context_config_set_app_name(c_contextCfg, app_name)
-	C.appd_context_config_set_tier_name(c_contextCfg, tier_name)
-	C.appd_context_config_set_node_name(c_contextCfg, node_name)
+    c_contextCfg := C.appd_context_config_init(cs);
+    if (C.contexthandle_to_uint(c_contextCfg) == 0) {
+      return nil
+    }
+    C.appd_context_config_set_app_name(c_contextCfg, app_name);
+    C.appd_context_config_set_tier_name(c_contextCfg, tier_name);
+    C.appd_context_config_set_node_name(c_contextCfg, node_name);
 
-	result := int(C.appd_sdk_add_app_context(c_contextCfg))
-	if result != 0 {
-		return errors.New("Could not add app context to config.")
-	}
+    result := int(C.appd_sdk_add_app_context(c_contextCfg))
+    if result != 0 {
+        return errors.New("Could not add app context to config.")
+    }
 
-	return nil
+    return nil
 }
 
 // Initializes the AppDynamics SDK.
 // Returns an error on failure.
 func InitSDK(cfg *Config) error {
-	// convert the go struct to a c struct
-	C.appd_config_set_golang()
-	c_cfg := marshalConfig(cfg)
+    // convert the go struct to a c struct
+    C.appd_config_set_golang()
+    c_cfg := marshalConfig(cfg)
 
-	if cfg.UseConfigFromEnv {
-		if cfg.EnvVarPrefix != "" {
-			csPrefix := C.CString(cfg.EnvVarPrefix)
-			defer C.free(unsafe.Pointer(csPrefix))
-			C.appd_config_getenv(c_cfg, csPrefix)
-		} else {
-			C.appd_config_getenv(c_cfg, nil)
-		}
-	}
+    if cfg.UseConfigFromEnv {
+        if cfg.EnvVarPrefix != "" {
+            csPrefix := C.CString(cfg.EnvVarPrefix)
+            defer C.free(unsafe.Pointer(csPrefix))
+            C.appd_config_getenv(c_cfg, csPrefix)
+        } else {
+            C.appd_config_getenv(c_cfg, nil)
+        }
+    }
 
-	result := int(C.appd_sdk_init(c_cfg))
+    result := int(C.appd_sdk_init(c_cfg))
 
-	if result != 0 {
-		return errors.New("Could not initialize the Golang SDK.")
-	}
+    if result != 0 {
+        return errors.New("Could not initialize the Golang SDK.")
+    }
 
-	return nil
+    return nil
 }
 
 // Adds a backend with the given name, type, and identifying properties.
@@ -355,68 +356,68 @@ func InitSDK(cfg *Config) error {
 //   the flow map will be A -> C. If you set resolve to false, the flow
 //   map will be A -> B -> C.
 func AddBackend(name, backendType string, identifyingProperties map[string]string, resolve bool) error {
-	ns := C.CString(name)
-	defer C.free(unsafe.Pointer(ns))
-	ts := C.CString(backendType)
-	defer C.free(unsafe.Pointer(ts))
+    ns := C.CString(name)
+    defer C.free(unsafe.Pointer(ns))
+    ts := C.CString(backendType)
+    defer C.free(unsafe.Pointer(ts))
 
-	// Step 1/4: declare the backend
-	C.appd_backend_declare(ts, ns)
+    // Step 1/4: declare the backend
+    C.appd_backend_declare(ts, ns)
 
-	// Step 2/4: add identifying properties
-	for key, value := range identifyingProperties {
-		ks := C.CString(key)
-		vs := C.CString(value)
+    // Step 2/4: add identifying properties
+    for key, value := range identifyingProperties {
+        ks := C.CString(key)
+        vs := C.CString(value)
 
-		result_cint := C.appd_backend_set_identifying_property(ns, ks, vs)
-		result := int(result_cint)
+        result_cint := C.appd_backend_set_identifying_property(ns, ks, vs)
+        result := int(result_cint)
 
-		C.free(unsafe.Pointer(ks))
-		C.free(unsafe.Pointer(vs))
+        C.free(unsafe.Pointer(ks))
+        C.free(unsafe.Pointer(vs))
 
-		if result != 0 {
-			return fmt.Errorf("Could not add identifying property (key: %sm value: %s) for backend %s. See SDK log for more info.",
-				key, value, name)
-		}
-	}
+        if result != 0 {
+            return fmt.Errorf("Could not add identifying property (key: %sm value: %s) for backend %s. See SDK log for more info.",
+                key, value, name)
+        }
+    }
 
-	// Step 3/4: prevent agent resolution if desired
-	if !resolve {
-		result_cint := C.appd_backend_prevent_agent_resolution(ns)
-		if int(result_cint) != 0 {
-			return fmt.Errorf("Could not prevent agent resolution on backend %s. See SDK log for more info.", name)
-		}
-	}
+    // Step 3/4: prevent agent resolution if desired
+    if !resolve {
+        result_cint := C.appd_backend_prevent_agent_resolution(ns)
+        if int(result_cint) != 0 {
+            return fmt.Errorf("Could not prevent agent resolution on backend %s. See SDK log for more info.", name)
+        }
+    }
 
-	// Step 4/4: add the backend
-	result_cint := C.appd_backend_add(ns)
-	if int(result_cint) != 0 {
-		return fmt.Errorf("Could not add backend %s. See SDK log for more info.", name)
-	}
+    // Step 4/4: add the backend
+    result_cint := C.appd_backend_add(ns)
+    if int(result_cint) != 0 {
+        return fmt.Errorf("Could not add backend %s. See SDK log for more info.", name)
+    }
 
-	return nil
+    return nil
 }
 
 // Starts a business transaction.
 // Returns an opaque handle for the business transaction that was started
 func StartBT(name, correlation_header string) BtHandle {
-	ns := C.CString(name)
-	defer C.free(unsafe.Pointer(ns))
-	chs := C.CString(correlation_header)
-	defer C.free(unsafe.Pointer(chs))
+    ns := C.CString(name)
+    defer C.free(unsafe.Pointer(ns))
+    chs := C.CString(correlation_header)
+    defer C.free(unsafe.Pointer(chs))
 
-	return BtHandle(C.bthandle_to_uint(C.appd_bt_begin(ns, chs)))
+    return BtHandle(C.bthandle_to_uint(C.appd_bt_begin(ns, chs)))
 }
 
 func StartBTWithAppContext(context, name, correlation_header string) BtHandle {
-	cs := C.CString(context)
-	defer C.free(unsafe.Pointer(cs))
-	ns := C.CString(name)
-	defer C.free(unsafe.Pointer(ns))
-	chs := C.CString(correlation_header)
-	defer C.free(unsafe.Pointer(chs))
+    cs := C.CString(context)
+    defer C.free(unsafe.Pointer(cs))
+    ns := C.CString(name)
+    defer C.free(unsafe.Pointer(ns))
+    chs := C.CString(correlation_header)
+    defer C.free(unsafe.Pointer(chs))
 
-	return BtHandle(C.bthandle_to_uint(C.appd_bt_begin_with_app_context(cs, ns, chs)))
+    return BtHandle(C.bthandle_to_uint(C.appd_bt_begin_with_app_context(cs, ns, chs)))
 }
 
 //
@@ -444,32 +445,32 @@ func StartBTWithAppContext(context, name, correlation_header string) BtHandle {
 //     A globally unique identifier to associate with the given BT.
 
 func StoreBT(bt BtHandle, guid string) {
-	gs := C.CString(guid)
-	defer C.free(unsafe.Pointer(gs))
-	bth := C.uint_to_bthandle(C.uintptr_t(bt))
+    gs := C.CString(guid)
+    defer C.free(unsafe.Pointer(gs))
+    bth := C.uint_to_bthandle(C.uintptr_t(bt))
 
-	C.appd_bt_store(bth, gs)
+    C.appd_bt_store(bth, gs)
 }
 
 // // Get a BT handle associated with the given guid by StoreBT.
 func GetBT(guid string) BtHandle {
-	gs := C.CString(guid)
-	defer C.free(unsafe.Pointer(gs))
+    gs := C.CString(guid)
+    defer C.free(unsafe.Pointer(gs))
 
-	return BtHandle(C.bthandle_to_uint(C.appd_bt_get(gs)))
+    return BtHandle(C.bthandle_to_uint(C.appd_bt_get(gs)))
 }
 
 // translates the Go "enum" to the C equivalent in appdynamics.h
 func GetCErrorLevel(level ErrorLevel) C.enum_appd_error_level {
-	switch level {
-	case APPD_LEVEL_NOTICE:
-		return C.APPD_LEVEL_NOTICE
-	case APPD_LEVEL_WARNING:
-		return C.APPD_LEVEL_WARNING
-	case APPD_LEVEL_ERROR:
-		return C.APPD_LEVEL_ERROR
-	}
-	return C.APPD_LEVEL_ERROR
+    switch level {
+    case APPD_LEVEL_NOTICE:
+        return C.APPD_LEVEL_NOTICE
+    case APPD_LEVEL_WARNING:
+        return C.APPD_LEVEL_WARNING
+    case APPD_LEVEL_ERROR:
+        return C.APPD_LEVEL_ERROR
+    }
+    return C.APPD_LEVEL_ERROR
 }
 
 // Add an error to a business transaction.
@@ -478,34 +479,34 @@ func GetCErrorLevel(level ErrorLevel) C.enum_appd_error_level {
 // add an error without marking the business transaction as an error (e.g.,
 // for non-fatal errors).
 func AddBTError(
-	bt BtHandle,
-	level ErrorLevel,
-	message string,
-	mark_bt_as_error bool) {
+    bt BtHandle,
+    level ErrorLevel,
+    message string,
+    mark_bt_as_error bool) {
 
-	ms := C.CString(message)
-	defer C.free(unsafe.Pointer(ms))
+    ms := C.CString(message)
+    defer C.free(unsafe.Pointer(ms))
 
-	var mark_bt_as_error_int int
-	if mark_bt_as_error {
-		mark_bt_as_error_int = 1
-	} else {
-		mark_bt_as_error_int = 0
-	}
+    var mark_bt_as_error_int int
+    if mark_bt_as_error {
+        mark_bt_as_error_int = 1
+    } else {
+        mark_bt_as_error_int = 0
+    }
 
-	C.appd_bt_add_error(
-		C.uint_to_bthandle(C.uintptr_t(bt)),
-		GetCErrorLevel(level),
-		ms,
-		C.int(mark_bt_as_error_int))
+    C.appd_bt_add_error(
+        C.uint_to_bthandle(C.uintptr_t(bt)),
+        GetCErrorLevel(level),
+        ms,
+        C.int(mark_bt_as_error_int))
 }
 
 // Returns true if the business transaction is taking a snapshot,
 // otherwise false.
 func IsBTSnapshotting(bt BtHandle) bool {
-	bth := C.uint_to_bthandle(C.uintptr_t(bt))
-	result := int8(C.appd_bt_is_snapshotting(bth))
-	return result != 0
+    bth := C.uint_to_bthandle(C.uintptr_t(bt))
+    result := int8(C.appd_bt_is_snapshotting(bth))
+    return result != 0
 }
 
 // Add user data to a snapshot (if one is being taken).
@@ -519,13 +520,13 @@ func IsBTSnapshotting(bt BtHandle) bool {
 // if the business transaction is snapshotting before extracting the data
 // and calling this function.
 func AddUserDataToBT(bt BtHandle, key, value string) {
-	ks := C.CString(key)
-	defer C.free(unsafe.Pointer(ks))
-	vs := C.CString(value)
-	defer C.free(unsafe.Pointer(vs))
-	bth := C.uint_to_bthandle(C.uintptr_t(bt))
+    ks := C.CString(key)
+    defer C.free(unsafe.Pointer(ks))
+    vs := C.CString(value)
+    defer C.free(unsafe.Pointer(vs))
+    bth := C.uint_to_bthandle(C.uintptr_t(bt))
 
-	C.appd_bt_add_user_data(bth, ks, vs)
+    C.appd_bt_add_user_data(bth, ks, vs)
 }
 
 // Set URL for a snapshot (if one is being taken).
@@ -539,27 +540,27 @@ func AddUserDataToBT(bt BtHandle, key, value string) {
 // if the business transaction is snapshotting before extracting the data
 // and calling this function.
 func SetBTURL(bt BtHandle, url string) {
-	us := C.CString(url)
-	defer C.free(unsafe.Pointer(us))
-	bth := C.uint_to_bthandle(C.uintptr_t(bt))
+    us := C.CString(url)
+    defer C.free(unsafe.Pointer(us))
+    bth := C.uint_to_bthandle(C.uintptr_t(bt))
 
-	C.appd_bt_set_url(bth, us)
+    C.appd_bt_set_url(bth, us)
 }
 
 // End the given business transaction.
 func EndBT(bt BtHandle) {
-	bth := C.uint_to_bthandle(C.uintptr_t(bt))
-	C.appd_bt_end(bth)
+    bth := C.uint_to_bthandle(C.uintptr_t(bt))
+    C.appd_bt_end(bth)
 }
 
 // Start an exit call as part of a business transaction.
 //
 // Returns An opaque handle to the exit call that was started.
 func StartExitcall(bt BtHandle, backend string) ExitcallHandle {
-	bs := C.CString(backend)
-	defer C.free(unsafe.Pointer(bs))
-	bth := C.uint_to_bthandle(C.uintptr_t(bt))
-	return ExitcallHandle(C.echandle_to_uint(C.appd_exitcall_begin(bth, bs)))
+    bs := C.CString(backend)
+    defer C.free(unsafe.Pointer(bs))
+    bth := C.uint_to_bthandle(C.uintptr_t(bt))
+    return ExitcallHandle(C.echandle_to_uint(C.appd_exitcall_begin(bth, bs)))
 }
 
 // Store an exit call handle for retrieval with appd_exitcall_get.
@@ -571,19 +572,19 @@ func StartExitcall(bt BtHandle, backend string) ExitcallHandle {
 //
 //  The handle is removed when the exit call (or the BT containing it) ends.
 func StoreExitcall(exitcall ExitcallHandle, guid string) {
-	gs := C.CString(guid)
-	defer C.free(unsafe.Pointer(gs))
-	ech := C.uint_to_echandle(C.uintptr_t(exitcall))
+    gs := C.CString(guid)
+    defer C.free(unsafe.Pointer(gs))
+    ech := C.uint_to_echandle(C.uintptr_t(exitcall))
 
-	C.appd_exitcall_store(ech, gs)
+    C.appd_exitcall_store(ech, gs)
 }
 
 // // Get an exit call associated with a guid via StoreExitcall.
 func GetExitcall(guid string) ExitcallHandle {
-	gs := C.CString(guid)
-	defer C.free(unsafe.Pointer(gs))
+    gs := C.CString(guid)
+    defer C.free(unsafe.Pointer(gs))
 
-	return ExitcallHandle(C.echandle_to_uint(C.appd_exitcall_get(gs)))
+    return ExitcallHandle(C.echandle_to_uint(C.appd_exitcall_get(gs)))
 }
 
 // Set the details string for an exit call.
@@ -592,16 +593,16 @@ func GetExitcall(guid string) ExitcallHandle {
 // has executed as part of the exit call.
 // Returns an error on failure.
 func SetExitcallDetails(exitcall ExitcallHandle, details string) error {
-	ds := C.CString(details)
-	defer C.free(unsafe.Pointer(ds))
-	ech := C.uint_to_echandle(C.uintptr_t(exitcall))
+    ds := C.CString(details)
+    defer C.free(unsafe.Pointer(ds))
+    ech := C.uint_to_echandle(C.uintptr_t(exitcall))
 
-	result := int(C.appd_exitcall_set_details(ech, ds))
-	if result != 0 {
-		return errors.New("Could not set exitcall details")
-	}
+    result := int(C.appd_exitcall_set_details(ech, ds))
+    if result != 0 {
+        return errors.New("Could not set exitcall details")
+    }
 
-	return nil
+    return nil
 }
 
 // Get the header for correlating a business transaction.
@@ -620,38 +621,38 @@ func SetExitcallDetails(exitcall ExitcallHandle, details string) error {
 //     message is logged and the default header that prevents
 //     downstream bt detection is returned.
 func GetExitcallCorrelationHeader(exitcall ExitcallHandle) string {
-	ech := C.uint_to_echandle(C.uintptr_t(exitcall))
-	header := C.appd_exitcall_get_correlation_header(ech)
-	return C.GoString(header)
+    ech := C.uint_to_echandle(C.uintptr_t(exitcall))
+    header := C.appd_exitcall_get_correlation_header(ech)
+    return C.GoString(header)
 }
 
 // Add an error to the exit call.
 func AddExitcallError(
-	exitcall ExitcallHandle,
-	level ErrorLevel,
-	message string,
-	mark_bt_as_error bool) {
+    exitcall ExitcallHandle,
+    level ErrorLevel,
+    message string,
+    mark_bt_as_error bool) {
 
-	ms := C.CString(message)
-	defer C.free(unsafe.Pointer(ms))
+    ms := C.CString(message)
+    defer C.free(unsafe.Pointer(ms))
 
-	var mark_bt_as_error_int int
-	if mark_bt_as_error {
-		mark_bt_as_error_int = 1
-	} else {
-		mark_bt_as_error_int = 0
-	}
+    var mark_bt_as_error_int int
+    if mark_bt_as_error {
+        mark_bt_as_error_int = 1
+    } else {
+        mark_bt_as_error_int = 0
+    }
 
-	C.appd_exitcall_add_error(
-		C.uint_to_echandle(C.uintptr_t(exitcall)),
-		GetCErrorLevel(level),
-		ms,
-		C.int(mark_bt_as_error_int))
+    C.appd_exitcall_add_error(
+        C.uint_to_echandle(C.uintptr_t(exitcall)),
+        GetCErrorLevel(level),
+        ms,
+        C.int(mark_bt_as_error_int))
 }
 
 // Complete the exit call.
 func EndExitcall(exitcall ExitcallHandle) {
-	C.appd_exitcall_end(C.uint_to_echandle(C.uintptr_t(exitcall)))
+    C.appd_exitcall_end(C.uint_to_echandle(C.uintptr_t(exitcall)))
 }
 
 // Specifies how to roll up values for the metric over time. There are three ways in which the Controller can roll up metrics, as follows:
@@ -678,7 +679,7 @@ func GetCRollupType(rollUp RollupType) C.enum_appd_time_rollup_type {
 	case APPD_TIMEROLLUP_TYPE_CURRENT:
 		return C.APPD_TIMEROLLUP_TYPE_CURRENT
 	}
-	return C.APPD_TIMEROLLUP_TYPE_AVERAGE
+    return C.APPD_TIMEROLLUP_TYPE_AVERAGE
 }
 
 // Specifies how to aggregate metric values for the tier (a cluster of nodes).
@@ -687,7 +688,7 @@ func GetCRollupType(rollUp RollupType) C.enum_appd_time_rollup_type {
 // that uses the individual rollup type.
 // APPD_CLUSTERROLLUP_TYPE_COLLECTIVE – Aggregates the metric value by adding up the metric values
 // for all the nodes in the tier. For example, "Agent|Metric Upload|Metrics uploaded" is a built-in metric
-// that uses the collective rollup type.
+// that uses the collective rollup type. 
 type ClusterRollupType int
 
 const (
@@ -702,13 +703,13 @@ func GetCClusterRollupType(rollUp ClusterRollupType) C.enum_appd_cluster_rollup_
 	case APPD_CLUSTERROLLUP_TYPE_COLLECTIVE:
 		return C.APPD_CLUSTERROLLUP_TYPE_COLLECTIVE
 	}
-	return C.APPD_CLUSTERROLLUP_TYPE_INDIVIDUAL
+    return C.APPD_CLUSTERROLLUP_TYPE_INDIVIDUAL
 }
 
 // A particular metric may not report data for a given minute. This configuration tells the Controller how to set
 // the metric's count for that time slice. The count is set to zero if the hole handling type is APPD_HOLEHANDLING_TYPE_REGULAR_COUNTER,
 // and set to one if APPD_HOLEHANDLING_TYPE_RATE_COUNTER. In effect, APPD_HOLEHANDLING_TYPE_RATE_COUNTER does not affect aggregation while
-// APPD_HOLEHANDLING_TYPE_RATE_COUNTER does.
+// APPD_HOLEHANDLING_TYPE_RATE_COUNTER does. 
 type HoleHandlingType int
 
 const (
@@ -723,12 +724,12 @@ func GetCHoleHandlingType(counter HoleHandlingType) C.enum_appd_hole_handling_ty
 	case APPD_HOLEHANDLING_TYPE_REGULAR_COUNTER:
 		return C.APPD_HOLEHANDLING_TYPE_REGULAR_COUNTER
 	}
-	return C.APPD_HOLEHANDLING_TYPE_RATE_COUNTER
+    return C.APPD_HOLEHANDLING_TYPE_RATE_COUNTER
 }
 
 // Define a custom metric.
 // The API takes ApplicationContext, MetricPath, RollupType which specifies how to rollup
-// metric values for this metric over time, e.g.,
+// metric values for this metric over time, e.g., 
 // to compute the average over time, pass APPD_TIMEROLLUP_TYPE_AVERAGE, ClusterRollUp which specifies
 // how to rollup metric values for this metric across clusters and  HoleHandlingType which specifies
 // how to handle holes (gaps where no value has been reported from this metric
@@ -760,5 +761,5 @@ func ReportCustomMetric(applicationContext, metricPath string, value int64) {
 }
 
 func TerminateSDK() {
-	C.appd_sdk_term()
+    C.appd_sdk_term()
 }
