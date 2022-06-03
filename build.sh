@@ -26,7 +26,7 @@ fi
 echo "Building application version $VERSION"
 
 echo "Building default binary"
-CGO_ENABLED=0 go build -ldflags "-s -w" -ldflags "-X $PKG_SRC/cmd.version=${VERSION}" -o "build/$APP_NAME" $PKG_SRC
+CGO_ENABLED=1 go build -ldflags "-s -w" -ldflags "-X $PKG_SRC/cmd.version=${VERSION}" -o "build/$APP_NAME" $PKG_SRC
 
 if [ ! -z "${BUILD_ONLY_DEFAULT}" ]; then
   echo "Only default binary was requested to build"
@@ -39,6 +39,6 @@ OS_ARCH_ARG=(amd64)
 for OS in ${OS_PLATFORM_ARG[@]}; do
   for ARCH in ${OS_ARCH_ARG[@]}; do
     echo "Building binary for $OS/$ARCH..."
-    GOARCH=$ARCH GOOS=$OS CGO_ENABLED=0 go build -ldflags "-s -w" -ldflags "-X $PKG_SRC/cmd.version=${VERSION}" -o "build/$APP_NAME-$OS-$ARCH" $PKG_SRC
+    GOARCH=$ARCH GOOS=$OS CGO_ENABLED=1 go build -ldflags "-s -w" -ldflags "-X $PKG_SRC/cmd.version=${VERSION}" -o "build/$APP_NAME-$OS-$ARCH" $PKG_SRC
   done
 done
