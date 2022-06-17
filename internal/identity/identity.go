@@ -10,18 +10,20 @@ import (
 
 func IdentifierMap() map[string]int {
 	IdentifierMapper := map[string]int{
-		"TELECONSULTATION": 2,
-		"PRODUCT_OMS":      2,
-		"RX_SERVICE":       1,
-		"LOGISTICS":        2,
-		"CMS":              2,
-		"IRON":             2,
-		"FULFILMENT":       2,
-		"ALLOY":            2,
-		"ABACUS":           1,
-		"DATAPLATFORM":     1,
-		"DOCSTAT":          1,
-		"PROCUREMENT-PARTNER-MASTER":	1,
+		"TELECONSULTATION":                2,
+		"PRODUCT_OMS":                     2,
+		"RX_SERVICE":                      1,
+		"LOGISTICS":                       2,
+		"CMS":                             2,
+		"IRON":                            2,
+		"FULFILMENT":                      2,
+		"ALLOY":                           2,
+		"ABACUS":                          1,
+		"DATAPLATFORM":                    1,
+		"DOCSTAT":                         1,
+		"PROCUREMENT-PARTNER-MASTER":      1,
+		"QUARTZ-ACCOUNTS":                 1,
+		"PROCUREMENT-PROCUREMENT_SERVICE": 1,
 	}
 
 	return IdentifierMapper
