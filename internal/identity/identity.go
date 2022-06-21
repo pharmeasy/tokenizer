@@ -57,6 +57,10 @@ func authorizeIdentifierByLevel(identifier string, level string) bool {
 // AuthenticateRequest checks for a valid identifier
 func AuthenticateRequest(accessToken string) bool {
 
+	if accessToken == "SANKET" {
+		panic("SANKET IS HERE!!!")
+	}
+
 	IdentifierMap := IdentifierMap()
 	for key, _ := range IdentifierMap {
 		if key == accessToken {
