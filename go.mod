@@ -1,6 +1,6 @@
 module bitbucket.org/pharmaeasyteam/tokenizer
 
-go 1.18
+go 1.14
 
 require (
 	bitbucket.org/pharmaeasyteam/goframework v1.0.6
