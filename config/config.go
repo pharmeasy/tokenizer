@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-//TokenizerConfig app configuration
+//TokenizerConfig app configuration for tokenizer
 type TokenizerConfig struct {
 	Server      config.ServerConfig
 	VaultModule VaultModule

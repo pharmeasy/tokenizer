@@ -1,4 +1,5 @@
-# The FROM variable will be dynamically fetched via jenkins 
+# The FROM variable will be dynamically fetched via jenkins on staging and prod env
+# Refer to the file tokenizer-base-DockerFile for building the project via docker on local env.
 COPY id_rsa /root/.ssh/id_rsa
 COPY ./lib/apm/appdynamics/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
 
