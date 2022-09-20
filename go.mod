@@ -3,7 +3,7 @@ module bitbucket.org/pharmaeasyteam/tokenizer
 go 1.18
 
 require (
-	bitbucket.org/pharmaeasyteam/goframework v1.0.6
+	bitbucket.org/pharmaeasyteam/goframework v1.1.1
 	github.com/aws/aws-sdk-go v1.35.7
 	github.com/go-chi/chi v4.1.1+incompatible
 	github.com/google/tink/go v1.5.0
