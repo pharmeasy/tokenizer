@@ -1,0 +1,35 @@
+# last updated - 20220914
+# this file is for reference purposes, changing anything here will not change the base image
+# This is the base image used for the first stage build for docker
+#
+# Why is it not part of the primary Dockerfile?
+# The image was prebuilt and fetched from ECR as it requires http based packages from debian
+# which was insecure and not allowed by the firewall. You will find this image pre built and stored
+# in the ECR location of every environment
+# 
+# How is the image added during the deployment process?
+# Jenkins cofigurations include a sed command that adds a line to the dockerfile
+# which then fetches this pre built image from the ECR
+#
+# How do i build the project locally? 
+# to build the project locally, add this to the main dockerfile
+# since the access to the ECR image is not permitted on local machines
+# 
+# Steps to update the base image
+# after you make changes here, you have to rebuild the base image, store it in ECR (devops does this)
+# update jenkins configs to point to the new ECR (you need to change this for all instances)
+FROM golang:1.18.0 AS builder
+RUN mkdir -p /root/.ssh
+RUN mkdir -p /etc/ssh/
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        python3-setuptools \
+        openssh-client \
+        git \
+        ca-certificates \
+    && pip3 install --upgrade pip \
+    && apt-get clean
+
+RUN pip3 --no-cache-dir install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic
