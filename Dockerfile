@@ -1,5 +1,20 @@
 # The FROM variable will be dynamically fetched via jenkins on staging and prod env
 # Refer to the file tokenizer-base-DockerFile for building the project via docker on local env.
+FROM golang:1.16 AS builder
+RUN mkdir -p /root/.ssh
+RUN mkdir -p /etc/ssh/
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        python3-setuptools \
+        openssh-client \
+        git \
+        ca-certificates \
+    && pip3 install --upgrade pip \
+    && apt-get clean
+
+RUN pip3 --no-cache-dir install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic
 COPY id_rsa /root/.ssh/id_rsa
 COPY ./lib/apm/appdynamics/lib/libappdynamics.so /usr/local/lib/libappdynamics.so
 
