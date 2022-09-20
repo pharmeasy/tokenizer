@@ -1,6 +1,6 @@
 # The FROM variable will be dynamically fetched via jenkins on staging and prod env
 # Refer to the file tokenizer-base-DockerFile for building the project via docker on local env.
-FROM golang:1.13 AS builder
+FROM golang:1.16 AS builder
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /etc/ssh/
 RUN apt-get update && \
