@@ -25,7 +25,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//encrypt API
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	appDTxnId := appD.StartBT("v1/encrypt")
 	requestParams, err := validator.ValidateEncryptionRequest(req)
