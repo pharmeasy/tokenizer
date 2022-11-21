@@ -124,7 +124,6 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 }
 
-// meta data
 func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	// validate request params
 
