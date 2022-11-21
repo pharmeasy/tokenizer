@@ -240,6 +240,7 @@ func getTokenData(requestParams *decryption.DecryptRequest, c *ModuleCrypto) (*m
 	return &tokenData, nil
 }
 
+//encrypt token
 func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto, ctx context.Context) (*encryption.EncryptResponse, error) {
 	encryptionResponse := encryption.EncryptResponse{}
 	reqParamsData := requestParams.EncryptRequestData
