@@ -25,7 +25,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// encrypt data
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 	appDTxnId := appD.StartBT("v1/encrypt")
 	requestParams, err := validator.ValidateEncryptionRequest(req)
@@ -240,7 +239,6 @@ func getTokenData(requestParams *decryption.DecryptRequest, c *ModuleCrypto) (*m
 	return &tokenData, nil
 }
 
-//encrypt token
 func encryptTokenData(requestParams *encryption.EncryptRequest, c *ModuleCrypto, ctx context.Context) (*encryption.EncryptResponse, error) {
 	encryptionResponse := encryption.EncryptResponse{}
 	reqParamsData := requestParams.EncryptRequestData
