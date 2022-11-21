@@ -124,7 +124,6 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 }
 
-// meta data
 func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	// validate request params
 
@@ -424,6 +423,7 @@ func getMetaItems(tokenData map[string]db.TokenData) *metadata.MetaResponse {
 	return &metaResponse
 }
 
+// integrity checker
 func integrityChecker(cipherText []byte, plainText string, salt string, kh *keyset.Handle) bool {
 	pt, _ := dataDecryptAEAD(cipherText, salt, kh)
 	if *pt == plainText {
