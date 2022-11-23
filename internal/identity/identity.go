@@ -17,7 +17,7 @@ func IdentifierMap() map[string]int {
 		"CMS":                             2,
 		"IRON":                            2,
 		"FULFILMENT":                      2,
-		"ALLOY":                           2,
+		"ALLOY":                           1,
 		"ABACUS":                          1,
 		"DATAPLATFORM":                    1,
 		"DOCSTAT":                         1,
