@@ -119,6 +119,21 @@ spec:
   prefix: /
   service: {{ prefix }}-{{ project_name }}-service.{{ namespace }}:8083
   timeout_ms: 10000
+{% if env == 'development' %}
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {{ prefix }}-{{ project_name }}-service-mapping-intrenal
+  namespace: {{ namespace }}
+spec:
+  bypass_auth: true
+  host: {{ internal_fqdn }}
+  ambassador_id: {{ ambassador_id }}
+  prefix: /
+  service: {{ prefix }}-{{ project_name }}-service.{{ namespace }}:8083
+  timeout_ms: 10000
+{% endif %}
 ---
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2beta1
