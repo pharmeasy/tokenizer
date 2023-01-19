@@ -9,7 +9,7 @@ import (
 
 func main() {
 	instana.InitSensor(&instana.Options{
-		Service:           "alloy-gateway",
+		Service:           "tokenizer-gateway",
 		LogLevel:          instana.Debug,
 		EnableAutoProfile: true,
 	})
