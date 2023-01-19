@@ -77,6 +77,11 @@ spec:
             requests:
               cpu: 600m
               memory: 600Mi
+          env:
+            - name: INSTANA_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
       serviceAccount: {{ project_name }}-sa
 ---
 apiVersion: v1
