@@ -132,7 +132,7 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 	var span opentracing.Span
 
 	if parent, ok := instana.SpanFromContext(req.Context()); ok {
-		span = parent.Tracer().StartSpan("func_MetaData", opentracing.ChildOf(parent.Context()))
+		span = parent.Tracer().StartSpan("func_getMetaData", opentracing.ChildOf(parent.Context()))
 		defer span.Finish()
 	}
 
