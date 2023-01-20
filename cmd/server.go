@@ -40,7 +40,7 @@ func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 		server.WithGlobalConfig(&cfg.Server),
 	)
 
-	instanaSensor = instana.NewSensor("tokenizer-gateway")
+	instanaSensor = instana.NewSensor("tokenizer-tracing")
 
 	// Add the crypto module
 	svr.AddModule("crypto", cryptography.New(*cfg, instanaSensor))
