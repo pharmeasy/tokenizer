@@ -3,8 +3,6 @@ package cryptography
 import (
 	"context"
 	"fmt"
-	instana "github.com/instana/go-sensor"
-	"github.com/opentracing/opentracing-go"
 	"net/http"
 	"time"
 
@@ -27,14 +25,6 @@ import (
 )
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
-
-	var span opentracing.Span
-
-	if parent, ok := instana.SpanFromContext(req.Context()); ok {
-		span = parent.Tracer().StartSpan("func_encrypt", opentracing.ChildOf(parent.Context()))
-		defer span.Finish()
-	}
-
 	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
 		err = errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest)
@@ -72,13 +62,6 @@ func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
 }
 
 func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
-
-	var span opentracing.Span
-
-	if parent, ok := instana.SpanFromContext(req.Context()); ok {
-		span = parent.Tracer().StartSpan("func_decrypt", opentracing.ChildOf(parent.Context()))
-		defer span.Finish()
-	}
 
 	requestParams, err := validator.ValidateDecryptionRequest(req)
 	if err != nil {
@@ -129,13 +112,6 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 
 func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 
-	var span opentracing.Span
-
-	if parent, ok := instana.SpanFromContext(req.Context()); ok {
-		span = parent.Tracer().StartSpan("func_getMetaData", opentracing.ChildOf(parent.Context()))
-		defer span.Finish()
-	}
-
 	// validate request params
 	requestParams, err := validator.ValidateMetadataRequest(req)
 	if err != nil {
@@ -177,13 +153,6 @@ func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
 }
 
 func (c *ModuleCrypto) updateMetadata(w http.ResponseWriter, req *http.Request) {
-
-	var span opentracing.Span
-
-	if parent, ok := instana.SpanFromContext(req.Context()); ok {
-		span = parent.Tracer().StartSpan("func_updateMetadata", opentracing.ChildOf(parent.Context()))
-		defer span.Finish()
-	}
 
 	// validate request params
 	requestParams, err := validator.ValidateMetadataUpdateRequest(req)
