@@ -2,11 +2,19 @@ package main
 
 import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/cmd"
+	instana "github.com/instana/go-sensor"
 	"github.com/sirupsen/logrus"
 	"os"
 )
 
 func main() {
+
+	//instana initalization
+	instana.InitSensor(&instana.Options{
+		Service:           "tokenizer",
+		LogLevel:          instana.Debug,
+		EnableAutoProfile: true,
+	})
 
 	rootCmd := cmd.NewRootCmd()
 	if err := rootCmd.Execute(); err != nil {
