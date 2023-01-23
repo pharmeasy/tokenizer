@@ -1,6 +1,6 @@
-env: qa
+env: dev
 project_name: tokenizer
-prefix: qa
+prefix: dev
 namespace: "qa-consumer"
 fqdn: "dev-tokenizer.dev.pharmeasy.in"
 tag: "{{ prefix }}-{{ build_number }}"
