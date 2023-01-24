@@ -1,7 +1,7 @@
 env: development
 project_name: tokenizer
 prefix: dev
-namespace: "qa-consumer"
+namespace: "development"
 fqdn: "{{ prefix }}-{{ project_name }}.dev.pharmeasy.in"
 tag: "{{ prefix }}-{{ build_number }}"
 context: development
