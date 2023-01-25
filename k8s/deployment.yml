@@ -82,9 +82,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-      serviceAccount: {{ project_name }}-sa
+{% if workload_type is defined %}
       nodeSelector:
-        workloadType: {{ workload_type }}
+        workloadType: "{{ workload_type }}"
+{% endif %}
+      serviceAccount: {{ project_name }}-sa
 ---
 apiVersion: v1
 kind: Service
