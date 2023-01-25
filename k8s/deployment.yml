@@ -83,8 +83,6 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
       serviceAccount: {{ project_name }}-sa
-      nodeSelector:
-        workloadType: {{ workload_type }}
 ---
 apiVersion: v1
 kind: Service
