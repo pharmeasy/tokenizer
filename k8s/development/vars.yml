@@ -8,7 +8,7 @@ context: development
 env_during_build: True
 min_replicas: 1
 max_replicas: 1
-workload_type: "stateful"
+workload_type: stateful
 profile: default
 iamrole: K8sRoleTokenizerDev
 ambassador_id: default
