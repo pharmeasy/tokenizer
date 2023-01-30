@@ -111,8 +111,8 @@ func (c *ModuleCrypto) decrypt(w http.ResponseWriter, req *http.Request) {
 }
 
 func (c *ModuleCrypto) getMetaData(w http.ResponseWriter, req *http.Request) {
-	// validate request params
 
+	// validate request params
 	requestParams, err := validator.ValidateMetadataRequest(req)
 	if err != nil {
 		errormanager.RenderGetMetadataErrorResponse(w, req, http.StatusBadRequest,

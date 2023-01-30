@@ -6,8 +6,11 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/cryptography"
 	"context"
+	instana "github.com/instana/go-sensor"
 	"github.com/spf13/cobra"
 )
+
+var instanaSensor *instana.Sensor
 
 // NewServerStartCmd creates a new http server command
 func NewServerStartCmd(ctx context.Context) *cobra.Command {
@@ -37,8 +40,10 @@ func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 		server.WithGlobalConfig(&cfg.Server),
 	)
 
+	instanaSensor = instana.NewSensor("tokenizer-tracing")
+
 	// Add the crypto module
-	svr.AddModule("crypto", cryptography.New(*cfg))
+	svr.AddModule("crypto", cryptography.New(*cfg, instanaSensor))
 
 	svr.Start(ctx)
 	logging.GetLogger().Info("Shutting down")
