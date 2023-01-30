@@ -2,10 +2,10 @@ package cryptography
 
 import (
 	"context"
+	instana "github.com/instana/go-sensor"
 
 	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
 	"bitbucket.org/pharmaeasyteam/tokenizer/config"
-	appD "bitbucket.org/pharmaeasyteam/tokenizer/internal/apm/appdynamics"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
@@ -14,13 +14,14 @@ import (
 
 //ModuleCrypto ...
 type ModuleCrypto struct {
-	config   *config.TokenizerConfig
-	database *database.DynamoDbObject
+	config        *config.TokenizerConfig
+	database      *database.DynamoDbObject
+	InstanaSensor *instana.Sensor
 }
 
 //New ...
-func New(worldconfig config.TokenizerConfig) *ModuleCrypto {
-	return &ModuleCrypto{config: &worldconfig}
+func New(worldconfig config.TokenizerConfig, instanaSensor *instana.Sensor) *ModuleCrypto {
+	return &ModuleCrypto{config: &worldconfig, InstanaSensor: instanaSensor}
 }
 
 // Init ...
@@ -36,5 +37,4 @@ func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 		ms.config.VaultModule.KeysetConfig.KeysetName4: ms.config.VaultModule.KeysetConfig.KeysetValue4,
 	})
 	tokenmanager.LoadInstanceIDFromConfig(ms.config.VaultModule.TokenConfig.InstanceID)
-	appD.InitAppDynamics(ms.config)
 }
