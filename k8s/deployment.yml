@@ -70,18 +70,6 @@ spec:
           envFrom:
           - secretRef:
               name: "{{ prefix }}-{{ project_name }}"
-          env:
-            - name: env
-              value: {{env}}
-            - name: APPDYNAMICS_AGENT_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: cluster-agent-secret
-                  key: controller-key
           resources:
             limits:
               cpu: '1'
@@ -89,6 +77,15 @@ spec:
             requests:
               cpu: 600m
               memory: 600Mi
+          env:
+            - name: INSTANA_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+{% if workload_type is defined %}
+      nodeSelector:
+        workloadType: "{{ workload_type }}"
+{% endif %}
       serviceAccount: {{ project_name }}-sa
 ---
 apiVersion: v1
