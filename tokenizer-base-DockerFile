@@ -18,7 +18,7 @@
 # Steps to update the base image
 # after you make changes here, you have to rebuild the base image, store it in ECR (devops does this)
 # update jenkins configs to point to the new ECR (you need to change this for all instances)
-FROM golang:1.16 AS builder
+FROM golang:1.18 AS builder
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /etc/ssh/
 RUN apt-get update && \
