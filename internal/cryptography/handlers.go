@@ -19,14 +19,12 @@ import (
 	"bitbucket.org/pharmaeasyteam/tokenizer/internal/validator"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/getsentry/sentry-go"
 	"github.com/google/tink/go/aead"
 	"github.com/google/tink/go/keyset"
 	"go.uber.org/zap"
 )
 
 func (c *ModuleCrypto) encrypt(w http.ResponseWriter, req *http.Request) {
-	sentry.CaptureMessage("Sentry integrated in tokenizer")
 	requestParams, err := validator.ValidateEncryptionRequest(req)
 	if err != nil {
 		err = errormanager.SetEncryptionError(requestParams, err, http.StatusBadRequest)
