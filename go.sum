@@ -1,5 +1,5 @@
-bitbucket.org/pharmaeasyteam/goframework v1.1.5 h1:hBeNy+k7q4HYuH2oPw5oVmXSeKKiZ5zfHXz7XF3qMfs=
-bitbucket.org/pharmaeasyteam/goframework v1.1.5/go.mod h1:Fz/UjkXIVCQmSd6au5RJps/mpextExY2D/OA/u7cq3Y=
+bitbucket.org/pharmaeasyteam/goframework v1.1.7 h1:j07PpixDGvnzGdOGt37xix4mXIrEGmI7q/+j5gJe8mU=
+bitbucket.org/pharmaeasyteam/goframework v1.1.7/go.mod h1:Fz/UjkXIVCQmSd6au5RJps/mpextExY2D/OA/u7cq3Y=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
