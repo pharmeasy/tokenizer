@@ -25,6 +25,7 @@ func IdentifierMap() map[string]int {
 		"QUARTZ-ACCOUNTS":                 1,
 		"PROCUREMENT-PROCUREMENT_SERVICE": 1,
 		"DIAGNOSTICS_OMS":                 1,
+		"PARTNER_SERVICE":                 2,
 	}
 
 	return IdentifierMapper
