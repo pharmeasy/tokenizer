@@ -28,19 +28,11 @@ spec:
       maxSurge: 1
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         k8s-app: "{{ prefix }}-{{ project_name }}"
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: k8s-app
-                operator: In
-                values:
-                - {{ prefix }}-{{ project_name }}
-            topologyKey: "kubernetes.io/hostname"
       containers:
         - name: {{ project_name }}
           image: "{{ account_number }}.dkr.ecr.ap-south-1.amazonaws.com/{{ project_name }}:{{ tag }}"

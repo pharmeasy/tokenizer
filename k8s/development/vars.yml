@@ -12,4 +12,4 @@ profile: default
 iamrole: K8sRoleTokenizerDev
 ambassador_id: default
 account_number: "127603365779"
-workload_type: stateful
+
