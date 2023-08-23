@@ -7,7 +7,7 @@ tag: "{{ prefix }}-{{ build_number }}"
 context: development
 env_during_build: True
 min_replicas: 1
-max_replicas: 1
+max_replicas: 2
 profile: default
 iamrole: K8sRoleTokenizerDev
 ambassador_id: default
