@@ -2,7 +2,7 @@ env: development
 project_name: tokenizer
 prefix: dev
 namespace: "development"
-fqdn: "{{ prefix }}-{{ project_name }}.dev.pharmeasy.in"
+fqdn: "{{ prefix }}-{{ project_name }}.dev.thyrocare.com"
 tag: "{{ prefix }}-{{ build_number }}"
 context: development
 env_during_build: True

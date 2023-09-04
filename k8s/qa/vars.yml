@@ -1,7 +1,7 @@
 env: qa
 project_name: tokenizer
 namespace: "qa"
-fqdn: "{{ prefix }}-{{ project_name }}.qa.pharmeasy.in"
+fqdn: "{{ prefix }}-{{ project_name }}.qa.thyrocare.com"
 tag: "{{ prefix }}-{{ build_number }}"
 context: development
 env_during_build: True
