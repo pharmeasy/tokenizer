@@ -7,7 +7,7 @@ RUN chmod 600 /root/.ssh/id_rsa && \
   echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
   ssh-add /root/.ssh/id_rsa
 
-RUN git config --global url."git@bitbucket.org:".insteadOf "https://bitbucket.org/"
+RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
 
 WORKDIR /tokenizer
 COPY . .
