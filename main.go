@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bitbucket.org/pharmaeasyteam/tokenizer/cmd"
 	instana "github.com/instana/go-sensor"
+	"github.com/pharmaeasy/tokenizer/cmd"
 	"github.com/sirupsen/logrus"
 	"os"
 )

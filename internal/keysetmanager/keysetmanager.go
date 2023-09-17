@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
-	keysetmodel "bitbucket.org/pharmaeasyteam/tokenizer/internal/models/keyset"
 	"github.com/google/tink/go/integration/awskms"
 	"github.com/google/tink/go/keyset"
+	"github.com/pharmaeasy/tokenizer/internal/errormanager"
+	keysetmodel "github.com/pharmaeasy/tokenizer/internal/models/keyset"
 )
 
 // DecryptedKeysetMap stores the keys in memory
@@ -150,7 +150,7 @@ func LoadKeysetFromConfig(keyMap map[string]string) {
 	keysetMapFromEnv = keyMap
 }
 
-//LoadArnFromConfig loads kms arn from env
+// LoadArnFromConfig loads kms arn from env
 func LoadArnFromConfig(str string) {
 	kmsARN = str
 }

@@ -3,10 +3,10 @@ package cmd
 import (
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
 	"bitbucket.org/pharmaeasyteam/goframework/server"
-	"bitbucket.org/pharmaeasyteam/tokenizer/config"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/cryptography"
 	"context"
 	instana "github.com/instana/go-sensor"
+	"github.com/pharmaeasy/tokenizer/config"
+	"github.com/pharmaeasy/tokenizer/internal/cryptography"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,7 @@ func NewServerStartCmd(ctx context.Context) *cobra.Command {
 	return cmd
 }
 
-//RunServerStart run server
+// RunServerStart run server
 func RunServerStart(ctx context.Context, cfg *config.TokenizerConfig) error {
 
 	svr := server.New(

@@ -5,21 +5,21 @@ import (
 	instana "github.com/instana/go-sensor"
 
 	config2 "bitbucket.org/pharmaeasyteam/goframework/config"
-	"bitbucket.org/pharmaeasyteam/tokenizer/config"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/database"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/keysetmanager"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
+	"github.com/pharmaeasy/tokenizer/config"
+	"github.com/pharmaeasy/tokenizer/internal/database"
+	"github.com/pharmaeasy/tokenizer/internal/errormanager"
+	"github.com/pharmaeasy/tokenizer/internal/keysetmanager"
+	"github.com/pharmaeasy/tokenizer/internal/tokenmanager"
 )
 
-//ModuleCrypto ...
+// ModuleCrypto ...
 type ModuleCrypto struct {
 	config        *config.TokenizerConfig
 	database      *database.DynamoDbObject
 	InstanaSensor *instana.Sensor
 }
 
-//New ...
+// New ...
 func New(worldconfig config.TokenizerConfig, instanaSensor *instana.Sensor) *ModuleCrypto {
 	return &ModuleCrypto{config: &worldconfig, InstanaSensor: instanaSensor}
 }

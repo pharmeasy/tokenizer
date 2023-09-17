@@ -3,9 +3,9 @@ package identity
 import (
 	"strconv"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
+	"github.com/pharmaeasy/tokenizer/internal/models/db"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
+	"github.com/pharmaeasy/tokenizer/internal/models/encryption"
 )
 
 // TODO:: Add Gateway, Core Oms Service with Level

@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/tokenmanager"
+	"github.com/pharmaeasy/tokenizer/internal/errormanager"
+	"github.com/pharmaeasy/tokenizer/internal/models/decryption"
+	"github.com/pharmaeasy/tokenizer/internal/models/encryption"
+	"github.com/pharmaeasy/tokenizer/internal/models/metadata"
+	"github.com/pharmaeasy/tokenizer/internal/tokenmanager"
 )
 
 // ValidateEncryptionRequest provides validation logic for the incoming encryption request

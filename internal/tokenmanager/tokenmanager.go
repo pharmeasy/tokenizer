@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
 	"github.com/google/uuid"
+	"github.com/pharmaeasy/tokenizer/internal/errormanager"
 )
 
 var instanceID string

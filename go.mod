@@ -1,4 +1,4 @@
-module bitbucket.org/pharmaeasyteam/tokenizer
+module github.com/pharmaeasy/tokenizer
 
 go 1.18
 
