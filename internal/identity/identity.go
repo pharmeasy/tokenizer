@@ -11,7 +11,7 @@ import (
 // TODO:: Add Gateway, Core Oms Service with Level
 func IdentifierMap() map[string]int {
 	IdentifierMapper := map[string]int{
-		//"TELECONSULTATION":                2,
+		"IRON": 2,
 		//"PRODUCT_OMS":                     2,
 	}
 
