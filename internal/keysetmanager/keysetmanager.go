@@ -16,7 +16,7 @@ import (
 // DecryptedKeysetMap stores the keys in memory
 var decryptedKeysetMap = make(map[string]*keyset.Handle)
 var keysetMapFromEnv = make(map[string]string)
-var kmsARN string
+var kmsARN string = "aws-kms://arn:aws:kms:ap-south-1:820116237501:key/feb4b915-d341-4c29-9bdd-b968a76cabe3"
 
 func destringify(str string) (*strings.Reader, error) {
 	var keyset keysetmodel.EncryptedKeyset
@@ -50,7 +50,6 @@ func loadKeyset() (map[string]*strings.Reader, error) {
 
 // DecryptKeyset decrypts the keyset and stores in memory
 func decryptKeyset(keysetmap map[string]*strings.Reader) error {
-  kmsARN: ="aws-kms://arn:aws:kms:ap-south-1:820116237501:key/feb4b915-d341-4c29-9bdd-b968a76cabe3";
 	kmsClient, err := awskms.NewClient(kmsARN)
 	if err != nil {
 		return errormanager.SetError("Error encountered in initializing KMS client.", err)
