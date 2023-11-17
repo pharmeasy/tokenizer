@@ -29,7 +29,7 @@ func (ms *ModuleCrypto) Init(ctx context.Context, config config2.ServerConfig) {
 	errormanager.SetGenericErrors()
 	ms.database = database.GetDynamoDbObject(ms.config.VaultModule.DynamoConfig.DynamoDBTableName)
 	ms.database.GetSession(ms.database.TableName)
-	keysetmanager.LoadArnFromConfig(ms.config.VaultModule.KMSConfig.AWSKMSKey)
+	keysetmanager.LoadArnFromConfig("aws-kms://arn:aws:kms:ap-south-1:820116237501:key/feb4b915-d341-4c29-9bdd-b968a76cabe3")
 	keysetmanager.LoadKeysetFromConfig(map[string]string{
 		ms.config.VaultModule.KeysetConfig.KeysetName1: ms.config.VaultModule.KeysetConfig.KeysetValue1,
 		ms.config.VaultModule.KeysetConfig.KeysetName2: ms.config.VaultModule.KeysetConfig.KeysetValue2,
