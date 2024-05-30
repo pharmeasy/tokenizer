@@ -110,7 +110,7 @@ spec:
   timeout_ms: 10000
 ---
 kind: HorizontalPodAutoscaler
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2
 metadata:
   name: {{ prefix }}-{{ project_name }}-hpa
   namespace: {{ namespace }}
