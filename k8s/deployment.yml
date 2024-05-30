@@ -112,7 +112,7 @@ spec:
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
 metadata:
-  name: {{ prefix }}-{{ project_name }}-hpa
+  name: {{ prefix }}-{{ project_name }}-deployment
   namespace: {{ namespace }}
 spec:
   scaleTargetRef:
@@ -121,8 +121,4 @@ spec:
     apiVersion: apps/v1
   minReplicas: {{ min_replicas }}
   maxReplicas: {{ max_replicas }}
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        targetAverageUtilization: 70
+  targetAverageUtilization: 70
