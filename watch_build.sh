@@ -4,7 +4,7 @@ set +e
 
 echo "Building default binary"
 
-CGO_ENABLED=1 go build -ldflags "-s -w" -ldflags "-X bitbucket.org/pharmaeasyteam/tokenizer/cmd.version=${VERSION}" -o "build/tokenizer" $PKG_SRC
+CGO_ENABLED=1 go build -ldflags "-s -w" -ldflags "-X github.com/pharmaeasy/tokenizer/cmd.version=${VERSION}" -o "build/tokenizer" $PKG_SRC
 ./build/tokenizer start --config=tokenizer-dev.yml &
 pid=$!
 
@@ -20,7 +20,7 @@ while true; do
     fi
     rm -f build/tokenizer*
     echo "Building default binary"
-    CGO_ENABLED=1 go build -ldflags "-s -w" -ldflags "-X bitbucket.org/pharmaeasyteam/tokenizer/cmd.version=${VERSION}" -o "build/tokenizer" $PKG_SRC
+    CGO_ENABLED=1 go build -ldflags "-s -w" -ldflags "-X github.com/pharmaeasy/tokenizer/cmd.version=${VERSION}" -o "build/tokenizer" $PKG_SRC
     ./build/tokenizer start --config=tokenizer-dev.yml &
     pid=$!
     lastupdate=$(find . -not -path '*/\.*' | xargs stat | sed 's/"/_/g' | awk -F '_' '{print $4 $6 $8}' | md5)

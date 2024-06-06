@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"bitbucket.org/pharmaeasyteam/goframework/logging"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/errormanager"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/pharmaeasy/tokenizer/internal/errormanager"
+	"github.com/pharmaeasy/tokenizer/internal/models/db"
 )
 
 var dbSession *dynamodb.DynamoDB

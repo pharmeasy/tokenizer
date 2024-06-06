@@ -2,7 +2,7 @@ env: production
 project_name: tokenizer
 prefix: prod
 namespace: "{{ prefix }}-{{ project_name }}"
-fqdn: "{{ prefix }}-{{ project_name }}.private.thyrocare.com"
+fqdn: "tokenizer.private.thyrocare.com"
 tag: "{{ prefix }}-{{ build_number }}"
 context: production
 env_during_build: True
