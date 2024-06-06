@@ -1,7 +1,7 @@
 package database
 
 import (
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/db"
+	"github.com/pharmaeasy/tokenizer/internal/models/db"
 )
 
 type DatabaseInterface interface {

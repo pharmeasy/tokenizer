@@ -9,10 +9,10 @@ import (
 	"go.uber.org/zap"
 
 	"bitbucket.org/pharmaeasyteam/goframework/render"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/decryption"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/encryption"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/errorresponse"
-	"bitbucket.org/pharmaeasyteam/tokenizer/internal/models/metadata"
+	"github.com/pharmaeasy/tokenizer/internal/models/decryption"
+	"github.com/pharmaeasy/tokenizer/internal/models/encryption"
+	"github.com/pharmaeasy/tokenizer/internal/models/errorresponse"
+	"github.com/pharmaeasy/tokenizer/internal/models/metadata"
 )
 
 var genericBadRequestError error
@@ -93,7 +93,7 @@ func RenderUpdateMetadataErrorResponse(w http.ResponseWriter, req *http.Request,
 	render.JSONWithStatus(w, req, int(status), errorresponse.ExceptionResponse(status, err.Error()))
 }
 
-//SetDecryptionError logs non sensitive encryption data and returns a generic error
+// SetDecryptionError logs non sensitive encryption data and returns a generic error
 func SetDecryptionError(requestParams *decryption.DecryptRequest, err error, status uint) error {
 	genericError := getGenericErrorByStatus(status)
 	if requestParams != nil {
